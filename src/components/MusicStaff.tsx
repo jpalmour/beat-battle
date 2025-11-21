@@ -35,7 +35,7 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
 
         // Logical dimensions for the VexFlow rendering
         // We render to a fixed height coordinate system and let SVG scale it up
-        const LOGICAL_HEIGHT = 130
+        const LOGICAL_HEIGHT = 120
         const aspectRatio = containerWidth / containerHeight
         const logicalWidth = LOGICAL_HEIGHT * aspectRatio
 
@@ -60,7 +60,7 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
         }
 
         let currentX = padding
-        const y = 30 // Tighter vertical positioning
+        const y = 10 // Tighter vertical positioning
 
         exercise.measures.forEach((measure, index) => {
             const stave = new Stave(currentX, y, measureWidth)
