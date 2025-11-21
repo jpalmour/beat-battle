@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import './App.css'
 import MusicStaff from './components/MusicStaff'
 import LevelSelector from './components/LevelSelector'
@@ -16,11 +16,13 @@ function App() {
     generateExercise(levels[0], 'init')
   )
   const [exerciseCount, setExerciseCount] = useState(1)
+  const [score, setScore] = useState(0)
+  const [progressCount, setProgressCount] = useState(0)
+  const [showLevelUp, setShowLevelUp] = useState(false)
 
-  const streetScore = useMemo(() => 4850 + currentLevelIndex * 25, [currentLevelIndex])
-  const progressValue = useMemo(() => Math.min(80 + currentLevelIndex * 2, 98), [currentLevelIndex])
+  const progressValue = Math.min((progressCount / 5) * 100, 100)
 
-  const handleNext = () => {
+  const handleNextExercise = () => {
     const nextExercise = generateExercise(levels[currentLevelIndex], `ex-${Date.now()}`)
     setCurrentExercise(nextExercise)
     setExerciseCount(prev => prev + 1)
@@ -31,11 +33,48 @@ function App() {
     const nextExercise = generateExercise(levels[index], `ex-${Date.now()}`)
     setCurrentExercise(nextExercise)
     setExerciseCount(1)
+    setProgressCount(0) // Reset progress on manual level switch
+  }
+
+  const handleDropTheBeat = () => {
+    // 1. Update Score & Progress
+    setScore(prev => prev + 500)
+    const newProgress = progressCount + 1
+    setProgressCount(newProgress)
+
+    // 2. Check for Level Completion
+    if (newProgress >= 5) {
+      // Level Complete!
+      setShowLevelUp(true)
+      setTimeout(() => {
+        // Advance to next level
+        const nextLevelIdx = (currentLevelIndex + 1) % levels.length
+        setCurrentLevelIndex(nextLevelIdx)
+
+        // Reset for new level
+        setProgressCount(0)
+        setExerciseCount(1)
+        setShowLevelUp(false)
+
+        // Generate first exercise of new level
+        const nextExercise = generateExercise(levels[nextLevelIdx], `ex-${Date.now()}`)
+        setCurrentExercise(nextExercise)
+      }, 3000) // 3s celebration
+    } else {
+      // Just next exercise
+      handleNextExercise()
+    }
   }
 
   return (
     <div className="app-shell">
       <div className="graffiti-overlay" />
+      {showLevelUp && (
+        <div className="celebration-overlay">
+          <h1 className="level-up-text">LEVEL UP!</h1>
+          <div className="confetti">🎉 🎹 🚀</div>
+        </div>
+      )}
       <main className="battle-stage">
         <header className="hud">
           <div className="hud-left">
@@ -55,7 +94,7 @@ function App() {
           <div className="score-card">
             <div className="score-header">
               <img src={scoreLabelImage} alt="Street Score" className="score-label-img" />
-              <span className="score-value">{streetScore}</span>
+              <span className="score-value">{score}</span>
             </div>
             <div className="progress-track">
               <div className="progress-fill" style={{ width: `${progressValue}%` }}>
@@ -67,8 +106,7 @@ function App() {
 
         <section className="board">
           <div className="board-header">
-            <div>
-              <p className="tagline">Zora's Beat Battle</p>
+            <div className="header-left">
               <div className="block-label">Beat Pattern</div>
             </div>
             <div className="exercise-meta">
@@ -86,7 +124,7 @@ function App() {
               <div className="graffiti-tag">Zora Beats</div>
               <div className="user-details">
                 <span>User: Zora</span>
-                <span>Combo: 12x</span>
+                <span>Combo: {score > 0 ? Math.floor(score / 500) : 0}x</span>
               </div>
             </div>
 
@@ -94,10 +132,8 @@ function App() {
               <button className="ghost-button" onClick={() => handleLevelSelect(Math.max(currentLevelIndex - 1, 0))}>
                 Back
               </button>
-              <button className="ghost-button" onClick={handleNext}>
-                Next Track
-              </button>
-              <button className="drop-button" onClick={handleNext}>
+              {/* Removed redundant Next Track button */}
+              <button className="drop-button" onClick={handleDropTheBeat}>
                 <img src={dropButtonImage} alt="Drop the Beat" />
               </button>
             </div>
