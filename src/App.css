@@ -603,8 +603,8 @@
     .title-image {
         max-height: 150px;
         /* Scaled up 25% */
-        margin: 28px 24px -70px 0;
-        /* Push down significantly to align text, let drips hang */
+        margin: 0px 24px -70px 0;
+        /* Bump up to align text centerline with Block 1 */
     }
 
     .headline {
