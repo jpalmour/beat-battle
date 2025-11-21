@@ -6,9 +6,10 @@ import { levels } from './data/levels'
 import { generateExercise } from './utils/generator'
 import type { Exercise } from './types/music'
 
-import titleImage from './assets/TitleText-ZorasBeatBattle-transparent.png'
+import titleImage from './assets/TitleText-ZorasBeatBattle-Bordered-Transparent.png'
 import scoreLabelImage from './assets/street-score-transparent.png'
 import dropButtonImage from './assets/drop-the-beat-button-transparent.png'
+import backButtonImage from './assets/step-back-button-transparent.png'
 
 function App() {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0)
@@ -162,8 +163,8 @@ function App() {
             </div>
 
             <div className="controls">
-              <button className="ghost-button" onClick={() => handleLevelSelect(Math.max(currentLevelIndex - 1, 0))}>
-                Back
+              <button className="image-button back-button" onClick={() => handleLevelSelect(Math.max(currentLevelIndex - 1, 0))}>
+                <img src={backButtonImage} alt="Back" />
               </button>
               {/* Removed redundant Next Track button */}
               <button className="drop-button" onClick={handleDropTheBeat}>
