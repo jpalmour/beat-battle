@@ -601,9 +601,10 @@
     }
 
     .title-image {
-        max-height: 50px;
-        /* Smaller title */
-        margin: 0;
+        max-height: 120px;
+        /* Larger title */
+        margin: 0 auto -45px;
+        /* Negative margin for overlap */
     }
 
     .headline {
@@ -731,7 +732,8 @@
         text-transform: uppercase;
     }
 
-    .drop-button img {
+    .drop-button img,
+    .back-button img {
         height: 80px;
         /* Smaller button */
     }
