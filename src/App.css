@@ -653,6 +653,29 @@
         gap: 2px;
     }
 
+    .level-nav-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .nav-arrow {
+        background: none;
+        border: none;
+        font-family: 'Bangers', cursive;
+        font-size: 28px;
+        color: #ff00ff;
+        text-shadow: 1px 1px 0 #00ffff;
+        cursor: pointer;
+        padding: 0 4px;
+        transition: transform 0.1s;
+        line-height: 1;
+    }
+
+    .nav-arrow:active {
+        transform: scale(0.9);
+    }
+
     .level-name-small {
         font-family: 'Bangers', cursive;
         font-size: 24px;

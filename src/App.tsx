@@ -139,7 +139,21 @@ function App() {
             </div>
 
             <div className="mobile-landscape-info mobile-landscape-only">
-              <div className="level-name-small">{levels[currentLevelIndex].name}</div>
+              <div className="level-nav-container">
+                <button
+                  className="nav-arrow"
+                  onClick={() => handleLevelSelect((currentLevelIndex - 1 + levels.length) % levels.length)}
+                >
+                  &lt;
+                </button>
+                <div className="level-name-small">{levels[currentLevelIndex].name}</div>
+                <button
+                  className="nav-arrow"
+                  onClick={() => handleLevelSelect((currentLevelIndex + 1) % levels.length)}
+                >
+                  &gt;
+                </button>
+              </div>
               <div className="exercise-meta-small">
                 <span>Level {currentLevelIndex + 1}</span>
                 <span>•</span>
