@@ -34,9 +34,9 @@ dist/assets/index-DFlRhbSA.js   1,323.28 kB
 ```
 
 ### Visual Preview
-![Generator Range Fix Preview](/Users/josephpalmour/.gemini/antigravity/brain/e77df2c6-b458-48b9-8275-54019480a8c7/level4_range_fix_preview_1763704224097.png)
-*Screenshot showing Level 4 (Skips) with strictly natural notes within the C4-F5 range.*
+![Styling Fix - White Stems & Lines](/Users/josephpalmour/.gemini/antigravity/brain/c4a33717-ec6f-4635-92f4-4f4d84ab6593/styling_fix_preview_1763731644109.png)
+*Screenshot showing the fixed UI with white staff lines and note stems.*
 
 ## Next Steps
-- Expand UI with a sidebar or menu.
-- Add gamification (stars, progress).
+- Implement Sidebar for easier level navigation.
+- Add "Level Complete" feedback.

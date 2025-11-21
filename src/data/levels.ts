@@ -1,6 +1,7 @@
 export interface LevelConfig {
     id: string;
     title: string;
+    shortLabel?: string;
     description: string;
     clef: 'treble' | 'bass';
     range: { min: string; max: string }; // e.g. 'c/4', 'f/5'
@@ -14,6 +15,7 @@ export const levels: LevelConfig[] = [
     {
         id: 'level1',
         title: 'Level 1: Rhythm & Repeats',
+        shortLabel: 'Block 1',
         description: 'Focus on rhythm with repeated notes.',
         clef: 'treble',
         range: { min: 'c/4', max: 'f/5' },
@@ -24,6 +26,7 @@ export const levels: LevelConfig[] = [
     {
         id: 'level2',
         title: 'Level 2: Steps (One Way)',
+        shortLabel: 'Block 2',
         description: 'Steps going only up or only down.',
         clef: 'treble',
         range: { min: 'c/4', max: 'f/5' },
@@ -34,6 +37,7 @@ export const levels: LevelConfig[] = [
     {
         id: 'level3',
         title: 'Level 3: Steps (Mixed)',
+        shortLabel: 'Block 3',
         description: 'Steps going up and down freely.',
         clef: 'treble',
         range: { min: 'c/4', max: 'f/5' },
@@ -44,6 +48,7 @@ export const levels: LevelConfig[] = [
     {
         id: 'level4',
         title: 'Level 4: Skips',
+        shortLabel: 'Block 4',
         description: 'Adding skips (3rds) to the mix.',
         clef: 'treble',
         range: { min: 'c/4', max: 'f/5' },
@@ -54,6 +59,7 @@ export const levels: LevelConfig[] = [
     {
         id: 'level5',
         title: 'Level 5: Mixed Intervals',
+        shortLabel: 'Block 5',
         description: 'Steps, skips, and repeats combined.',
         clef: 'treble',
         range: { min: 'c/4', max: 'f/5' },
@@ -64,10 +70,11 @@ export const levels: LevelConfig[] = [
     {
         id: 'level6',
         title: 'Level 6: Chords (Treble)',
+        shortLabel: 'Block 6',
         description: 'Introducing harmonic intervals (2 notes).',
         clef: 'treble',
         range: { min: 'c/4', max: 'f/5' },
-        intervals: ['repeat'], // Base melody is simple repeats to focus on chords? Or mixed? User said "same as 1" (repeats)
+        intervals: ['repeat'],
         motion: 'any',
         rhythms: ['w', 'h', 'q'],
         harmonicIntervals: ['2nd', '3rd', '4th', '5th']
@@ -76,6 +83,7 @@ export const levels: LevelConfig[] = [
     {
         id: 'level7',
         title: 'Level 7: Bass Clef Repeats',
+        shortLabel: 'Block 7',
         description: 'Left hand rhythm and repeats.',
         clef: 'bass',
         range: { min: 'g/2', max: 'c/4' },
@@ -86,6 +94,7 @@ export const levels: LevelConfig[] = [
     {
         id: 'level8',
         title: 'Level 8: Bass Steps (One Way)',
+        shortLabel: 'Block 8',
         description: 'Bass clef steps going up or down.',
         clef: 'bass',
         range: { min: 'g/2', max: 'c/4' },
@@ -96,6 +105,7 @@ export const levels: LevelConfig[] = [
     {
         id: 'level9',
         title: 'Level 9: Bass Steps (Mixed)',
+        shortLabel: 'Block 9',
         description: 'Bass clef steps moving freely.',
         clef: 'bass',
         range: { min: 'g/2', max: 'c/4' },
@@ -106,6 +116,7 @@ export const levels: LevelConfig[] = [
     {
         id: 'level10',
         title: 'Level 10: Bass Skips',
+        shortLabel: 'Block 10',
         description: 'Bass clef skips (3rds).',
         clef: 'bass',
         range: { min: 'g/2', max: 'c/4' },
@@ -116,6 +127,7 @@ export const levels: LevelConfig[] = [
     {
         id: 'level11',
         title: 'Level 11: Bass Mixed',
+        shortLabel: 'Block 11',
         description: 'Bass clef steps, skips, and repeats.',
         clef: 'bass',
         range: { min: 'g/2', max: 'c/4' },
@@ -126,6 +138,7 @@ export const levels: LevelConfig[] = [
     {
         id: 'level12',
         title: 'Level 12: Bass Chords',
+        shortLabel: 'Block 12',
         description: 'Bass clef harmonic intervals.',
         clef: 'bass',
         range: { min: 'g/2', max: 'c/4' },

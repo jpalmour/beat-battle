@@ -1,27 +1,29 @@
-import type { LevelConfig } from '../data/levels';
+import type { LevelConfig } from '../data/levels'
 
 interface LevelSelectorProps {
-    levels: LevelConfig[];
-    currentLevelIndex: number;
-    onSelectLevel: (index: number) => void;
+    levels: LevelConfig[]
+    currentLevelIndex: number
+    onSelectLevel: (index: number) => void
 }
 
 export default function LevelSelector({ levels, currentLevelIndex, onSelectLevel }: LevelSelectorProps) {
     return (
         <div className="level-selector">
-            <h3 className="selector-title">Select Level:</h3>
-            <div className="level-buttons">
+            <div className="level-pills" role="tablist" aria-label="Select level">
                 {levels.map((level, index) => (
                     <button
                         key={level.id}
                         onClick={() => onSelectLevel(index)}
-                        className={`level-button ${index === currentLevelIndex ? 'active' : ''}`}
+                        className={`level-pill ${index === currentLevelIndex ? 'active' : ''}`}
                         title={level.description}
+                        role="tab"
+                        aria-selected={index === currentLevelIndex}
                     >
-                        {index + 1}
+                        <span className="pill-number">{index + 1}</span>
+                        <span className="pill-name">{level.shortLabel ?? level.title}</span>
                     </button>
                 ))}
             </div>
         </div>
-    );
+    )
 }

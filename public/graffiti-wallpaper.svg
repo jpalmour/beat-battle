@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <pattern id="brick" x="0" y="0" width="120" height="60" patternUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="120" height="60" fill="#2b2c2f" />
+      <rect x="0" y="58" width="120" height="2" fill="#1f2022" />
+      <rect x="118" y="0" width="2" height="60" fill="#1f2022" />
+      <rect x="60" y="0" width="2" height="60" fill="#1f2022" />
+    </pattern>
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch" />
+      <feColorMatrix type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.08" />
+      </feComponentTransfer>
+    </filter>
+    <linearGradient id="shadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.55" />
+      <stop offset="100%" stop-color="#000" stop-opacity="0.2" />
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="#1f2124" />
+  <rect width="1920" height="1080" fill="url(#brick)" opacity="0.95" />
+  <rect width="1920" height="1080" fill="url(#shadow)" />
+  <rect width="1920" height="1080" filter="url(#noise)" opacity="0.6" />
+  <g opacity="0.75">
+    <path d="M-50 380 C150 340 320 360 520 320 C760 270 870 200 1100 220 L1070 320 C930 340 760 380 610 450 C420 530 200 600 10 590 Z" fill="#1b9ca3" />
+    <path d="M1500 260 C1600 190 1780 210 1860 290 L1820 370 C1720 320 1640 320 1500 390 Z" fill="#b6ff3d" opacity="0.65" />
+    <path d="M1220 640 C1340 600 1500 630 1600 690 L1560 780 C1460 720 1360 720 1220 780 Z" fill="#ff3fa4" opacity="0.55" />
+    <path d="M300 700 C420 640 640 660 760 740 L720 830 C600 760 460 780 340 860 Z" fill="#ffd54f" opacity="0.5" />
+  </g>
+  <g opacity="0.9">
+    <circle cx="250" cy="280" r="90" fill="#0dd4d2" opacity="0.28" />
+    <circle cx="1660" cy="820" r="120" fill="#8cf53c" opacity="0.25" />
+    <circle cx="980" cy="520" r="160" fill="#ff5bd5" opacity="0.2" />
+  </g>
+  <g fill="none" stroke-linecap="round" stroke-width="18" opacity="0.8">
+    <path d="M320 360 Q420 330 500 360" stroke="#1ee3ee" />
+    <path d="M1410 320 Q1500 340 1590 300" stroke="#ff71cc" />
+    <path d="M820 780 Q930 750 1020 800" stroke="#f4e44c" />
+  </g>
+</svg>
