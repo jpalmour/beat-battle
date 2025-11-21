@@ -601,10 +601,10 @@
     }
 
     .title-image {
-        max-height: 120px;
-        /* Larger title */
-        margin: 12px 24px -45px 0;
-        /* Top, Right, Bottom, Left - Push down and add space to right */
+        max-height: 150px;
+        /* Scaled up 25% */
+        margin: 28px 24px -70px 0;
+        /* Push down significantly to align text, let drips hang */
     }
 
     .headline {
