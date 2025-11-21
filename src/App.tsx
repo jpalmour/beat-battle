@@ -6,6 +6,10 @@ import { levels } from './data/levels'
 import { generateExercise } from './utils/generator'
 import type { Exercise } from './types/music'
 
+import titleImage from './assets/TitleText-ZorasBeatBattle.png'
+import scoreLabelImage from './assets/street-score.png'
+import dropButtonImage from './assets/drop-the-beat-button.png'
+
 function App() {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0)
   const [currentExercise, setCurrentExercise] = useState<Exercise>(() =>
@@ -44,13 +48,13 @@ function App() {
           </div>
 
           <div className="hud-title">
-            <p className="eyebrow">Zora's Beat Battle</p>
+            <img src={titleImage} alt="Zora's Beat Battle" className="title-image" />
             <h1 className="headline">Block {currentLevelIndex + 1}</h1>
           </div>
 
           <div className="score-card">
             <div className="score-header">
-              <span className="score-label">Street Score</span>
+              <img src={scoreLabelImage} alt="Street Score" className="score-label-img" />
               <span className="score-value">{streetScore}</span>
             </div>
             <div className="progress-track">
@@ -94,7 +98,7 @@ function App() {
                 Next Track
               </button>
               <button className="drop-button" onClick={handleNext}>
-                Drop the Beat
+                <img src={dropButtonImage} alt="Drop the Beat" />
               </button>
             </div>
           </div>
