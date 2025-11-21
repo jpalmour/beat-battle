@@ -100,6 +100,9 @@
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
     border-radius: 18px;
     backdrop-filter: blur(8px);
+    position: relative;
+    z-index: 20;
+    /* Ensure HUD sits above board for title overlap */
 }
 
 .hud-left {
