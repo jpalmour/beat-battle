@@ -1,0 +1,31 @@
+:root {
+  /* Color Palette - Swiftie/Pink/Purple Theme */
+  --color-primary: #FF69B4; /* Hot Pink */
+  --color-primary-light: #FFB6C1; /* Light Pink */
+  --color-secondary: #9370DB; /* Medium Purple */
+  --color-secondary-dark: #8A2BE2; /* Blue Violet */
+  --color-accent: #FFD700; /* Gold (Sparkles!) */
+  
+  --color-background: #FFF0F5; /* Lavender Blush */
+  --color-surface: #FFFFFF;
+  
+  --color-text-main: #4A4A4A;
+  --color-text-light: #FFFFFF;
+
+  /* Typography */
+  --font-main: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-display: 'Comic Sans MS', 'Chalkboard SE', sans-serif; /* Fun font for headers */
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Borders */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+}
