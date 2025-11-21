@@ -188,8 +188,18 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
         // Bass (Thumb=Top)
         // Valid Thumb P: minUsed + 4 >= P >= maxUsed
         // We want LOWEST P (Thumb as low as possible)
-        const possibleStart = maxUsed;
-        const possibleEnd = Math.min(PITCHES.length - 1, minUsed + 4);
+
+        // Constraints:
+        // 1. P >= maxUsed (Thumb must be above or at highest note)
+        // 2. P - 4 <= minUsed (Pinky must be below or at lowest note) -> P <= minUsed + 4
+        // 3. P >= D3 (Index 4) -> Thumb must be at least D3
+        // 4. P <= C4 (Index 10) -> Thumb must be at most C4
+
+        const minBassThumb = PITCHES.indexOf('d/3'); // 4
+        const maxBassThumb = PITCHES.indexOf('c/4'); // 10
+
+        const possibleStart = Math.max(maxUsed, minBassThumb);
+        const possibleEnd = Math.min(minUsed + 4, maxBassThumb);
 
         // Iterate upwards from possibleStart to find lowest valid P
         for (let p = possibleStart; p <= possibleEnd; p++) {
