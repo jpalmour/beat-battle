@@ -66,7 +66,7 @@
     height: auto;
     display: block;
     margin: 0 auto 12px;
-    max-height: 120px;
+    max-height: 160px;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
 }
 
@@ -74,7 +74,6 @@
     margin: 2px 0 0;
     font-family: 'Bangers', cursive;
     font-size: 38px;
-    letter-spacing: 1px;
     color: #f1f5f9;
     text-shadow: -2px 2px 0 #15212b, 0 0 12px rgba(255, 255, 255, 0.35);
 }
@@ -100,7 +99,7 @@
 }
 
 .score-label-img {
-    height: 60px;
+    height: 80px;
     width: auto;
     filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.3));
 }
@@ -290,7 +289,7 @@
 
 .drop-button img {
     display: block;
-    height: 100px;
+    height: 120px;
     width: auto;
     filter: drop-shadow(0 10px 20px rgba(255, 77, 219, 0.4));
 }

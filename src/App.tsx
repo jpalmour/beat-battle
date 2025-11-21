@@ -6,9 +6,9 @@ import { levels } from './data/levels'
 import { generateExercise } from './utils/generator'
 import type { Exercise } from './types/music'
 
-import titleImage from './assets/TitleText-ZorasBeatBattle.png'
-import scoreLabelImage from './assets/street-score.png'
-import dropButtonImage from './assets/drop-the-beat-button.png'
+import titleImage from './assets/TitleText-ZorasBeatBattle-transparent.png'
+import scoreLabelImage from './assets/street-score-transparent.png'
+import dropButtonImage from './assets/drop-the-beat-button-transparent.png'
 
 function App() {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0)
