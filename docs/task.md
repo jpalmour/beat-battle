@@ -5,6 +5,7 @@
     - [x] Create Implementation Plan
     - [x] Initialize Project (Vite + React)
     - [x] Setup Basic Directory Structure
+    - [x] Initialize Git & .gitignore
 
 - [ ] **Phase 2: UI/UX Design & Theming**
     - [ ] Design Core Layout (Header, Main Stage, Footer)
@@ -29,6 +30,11 @@
     - [x] Implement Level Configurations (Level 1: Repeats, Level 2: Steps, etc.)
     - [x] Generate 10+ exercises per level dynamically
     - [x] Update Level Selector to handle multiple levels
+
+- [ ] **Phase 5.5: GitHub Pages Deployment**
+    - [ ] Configure `vite.config.ts` (base path)
+    - [ ] Create GitHub Action Workflow (`.github/workflows/deploy.yml`)
+    - [ ] Create `gh-pages` branch (orphan)
 
 - [ ] **Phase 6: Expanded UI & Navigation**
     - [ ] Sidebar/Menu for Level Selection
