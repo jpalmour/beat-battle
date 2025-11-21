@@ -35,7 +35,7 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
 
         // Logical dimensions for the VexFlow rendering
         // We render to a fixed height coordinate system and let SVG scale it up
-        const LOGICAL_HEIGHT = 120
+        const LOGICAL_HEIGHT = 135
         const aspectRatio = containerWidth / containerHeight
         const logicalWidth = LOGICAL_HEIGHT * aspectRatio
 
