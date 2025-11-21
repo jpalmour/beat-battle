@@ -617,8 +617,19 @@
         flex: 1;
         display: flex;
         align-items: center;
+        justify-content: center;
         padding: 4px 14px;
         min-height: 0;
+        overflow: hidden;
+        /* Prevent spill */
+    }
+
+    .music-staff-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .music-staff-container svg {
@@ -627,7 +638,6 @@
         width: auto;
         /* Maintain aspect ratio */
         max-width: 100%;
-        margin: 0 auto;
         display: block;
     }
 
