@@ -86,18 +86,19 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
                 });
 
                 if (noteData.fingers && noteData.fingers.length > 0) {
-                    noteData.fingers.forEach((finger, index) => {
-                        // If we have multiple fingers (chord), we need to map them to the correct note head index.
-                        // The generator provides fingers in the same order as keys (low to high).
-                        // VexFlow indices match this order.
+                    // Iterate in reverse order (High -> Low) to ensure correct vertical stacking
+                    // (First added = Closest to note = Top of stack)
+                    // We want High Note Finger (Top) -> Low Note Finger (Bottom)
+                    for (let i = noteData.fingers.length - 1; i >= 0; i--) {
+                        const finger = noteData.fingers[i];
                         staveNote.addModifier(
                             new Annotation(finger)
                                 .setFont('Bangers', 16, 'normal')
                                 .setVerticalJustification(Annotation.VerticalJustify.BOTTOM)
                                 .setStyle({ fillStyle: '#f2ff5d' }),
-                            index
+                            i
                         )
-                    })
+                    }
                 }
 
                 return staveNote
