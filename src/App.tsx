@@ -109,6 +109,9 @@ function App() {
             <div className="header-left">
               <div className="block-label">Beat Pattern</div>
             </div>
+            <div className="level-name">
+              {levels[currentLevelIndex].name}
+            </div>
             <div className="exercise-meta">
               <span className="meta-chip">Level {currentLevelIndex + 1}</span>
               <span className="meta-chip ghost">Exercise #{exerciseCount}</span>

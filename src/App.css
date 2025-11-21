@@ -224,6 +224,16 @@
     align-items: center;
 }
 
+.level-name {
+    font-family: 'Bangers', cursive;
+    font-size: 28px;
+    color: #ff00ff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0 #00ffff;
+    transform: rotate(-2deg);
+}
+
 /* Tagline removed */
 
 .block-label {

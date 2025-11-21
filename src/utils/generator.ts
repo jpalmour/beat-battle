@@ -111,8 +111,8 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
             // Handle Harmonic Intervals (Chords)
             let keys = [PITCHES[currentPitchIndex]];
             if (config.harmonicIntervals && !hasChordInMeasure && beatsRemaining > 0) {
-                // 50% chance to make a chord if allowed and haven't yet in this bar
-                if (Math.random() > 0.5) {
+                // 75% chance to make a chord if allowed and haven't yet in this bar
+                if (Math.random() > 0.25) {
                     const intervalName = config.harmonicIntervals[Math.floor(Math.random() * config.harmonicIntervals.length)];
                     let intervalSize = 0;
                     switch (intervalName) {
@@ -176,8 +176,13 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
     if (config.clef === 'treble') {
         // Valid Thumb P: maxUsed - 4 <= P <= minUsed
         // We want HIGHEST P (Thumb as high as possible)
-        const possibleStart = Math.max(0, maxUsed - 4);
-        const possibleEnd = minUsed;
+        // Constraint: Thumb must be between C4 and B4
+
+        const minTrebleThumb = PITCHES.indexOf('c/4');
+        const maxTrebleThumb = PITCHES.indexOf('b/4');
+
+        const possibleStart = Math.max(0, maxUsed - 4, minTrebleThumb);
+        const possibleEnd = Math.min(minUsed, maxTrebleThumb);
 
         // Iterate downwards from possibleEnd to find highest valid P
         for (let p = possibleEnd; p >= possibleStart; p--) {
