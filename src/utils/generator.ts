@@ -1,34 +1,34 @@
 import type { Exercise, Measure, Note } from '../types/music';
 import type { LevelConfig } from '../data/levels';
 
-// Simple note map for pitch calculations (C4 to A5 covers our needs)
+// Simple note map for pitch calculations (G2 to F5 covers Bass and Treble needs)
 const PITCHES = [
+    'g/2', 'a/2', 'b/2',
+    'c/3', 'd/3', 'e/3', 'f/3', 'g/3', 'a/3', 'b/3',
     'c/4', 'd/4', 'e/4', 'f/4', 'g/4', 'a/4', 'b/4',
-    'c/5', 'd/5', 'e/5', 'f/5', 'g/5', 'a/5'
+    'c/5', 'd/5', 'e/5', 'f/5'
 ];
 
 const RHYTHM_VALUES: Record<string, number> = {
     'w': 4,
     'h': 2,
     'q': 1,
-    'hd': 3 // Dotted half, if we use it
+    'hd': 3
 };
 
 export function generateExercise(config: LevelConfig, exerciseId: string): Exercise {
     const measures: Measure[] = [];
     let currentPitchIndex = getRandomStartIndex(config.range.min, config.range.max);
 
-    // Determine global direction for Level 2 if needed (or per measure?)
-    // User said "steps up only or down only" for the piece. 
-    // Let's pick a direction for the whole exercise for Level 2.
+    // Determine global direction for Level 2/8 if needed
     let forcedDirection: 'up' | 'down' | null = null;
     if (config.motion === 'unidirectional') {
         forcedDirection = Math.random() > 0.5 ? 'up' : 'down';
         // Adjust start index to allow room for movement
         if (forcedDirection === 'up') {
-            currentPitchIndex = Math.max(0, Math.min(currentPitchIndex, PITCHES.length - 5));
+            currentPitchIndex = Math.max(PITCHES.indexOf(config.range.min), Math.min(currentPitchIndex, PITCHES.indexOf(config.range.max) - 4));
         } else {
-            currentPitchIndex = Math.min(PITCHES.length - 1, Math.max(currentPitchIndex, 4));
+            currentPitchIndex = Math.min(PITCHES.indexOf(config.range.max), Math.max(currentPitchIndex, PITCHES.indexOf(config.range.min) + 4));
         }
     }
 
@@ -38,6 +38,7 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
     for (let m = 0; m < 4; m++) {
         const measure: Note[] = [];
         let beatsRemaining = 4;
+        let hasChordInMeasure = false;
 
         while (beatsRemaining > 0) {
             // Pick a rhythm that fits
@@ -72,10 +73,8 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
                 // Boundary check: use config range indices
                 if (potentialIndex < minIdx || potentialIndex > maxIdx) {
                     if (forcedDirection) {
-                        // If we hit a wall in forced direction, clamp or repeat
                         potentialIndex = currentPitchIndex;
                     } else {
-                        // Reverse
                         potentialIndex = currentPitchIndex - (stepSize * direction);
                     }
                 }
@@ -90,9 +89,50 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
 
             currentPitchIndex = nextPitchIndex;
 
+            // Handle Harmonic Intervals (Chords)
+            let keys = [PITCHES[currentPitchIndex]];
+            if (config.harmonicIntervals && !hasChordInMeasure && beatsRemaining > 0) {
+                // 50% chance to make a chord if allowed and haven't yet in this bar
+                if (Math.random() > 0.5) {
+                    const intervalName = config.harmonicIntervals[Math.floor(Math.random() * config.harmonicIntervals.length)];
+                    let intervalSize = 0;
+                    switch (intervalName) {
+                        case '2nd': intervalSize = 1; break;
+                        case '3rd': intervalSize = 2; break;
+                        case '4th': intervalSize = 3; break;
+                        case '5th': intervalSize = 4; break;
+                    }
+
+                    // Thumb Anchor Logic
+                    // Treble: Thumb (Anchor) is bottom -> Add note ABOVE
+                    // Bass: Thumb (Anchor) is top -> Add note BELOW
+                    let chordNoteIndex = -1;
+                    if (config.clef === 'treble') {
+                        chordNoteIndex = currentPitchIndex + intervalSize;
+                    } else {
+                        chordNoteIndex = currentPitchIndex - intervalSize;
+                    }
+
+                    // Check if chord note is valid (exists in PITCHES)
+                    // We don't strictly enforce range min/max for the *added* note, 
+                    // but it must be a valid pitch to render.
+                    if (chordNoteIndex >= 0 && chordNoteIndex < PITCHES.length) {
+                        keys.push(PITCHES[chordNoteIndex]);
+                        // Sort keys for VexFlow (bottom to top)
+                        // PITCHES is ordered low to high, so indices determine order
+                        if (chordNoteIndex < currentPitchIndex) {
+                            keys = [PITCHES[chordNoteIndex], PITCHES[currentPitchIndex]];
+                        } else {
+                            keys = [PITCHES[currentPitchIndex], PITCHES[chordNoteIndex]];
+                        }
+                        hasChordInMeasure = true;
+                    }
+                }
+            }
+
             // Add note
             const note: Note = {
-                keys: [PITCHES[currentPitchIndex]],
+                keys: keys,
                 duration: duration,
                 // Add finger hint only on very first note of exercise
                 finger: (measures.length === 0 && measure.length === 0) ? getFingerHint(PITCHES[currentPitchIndex]) : undefined

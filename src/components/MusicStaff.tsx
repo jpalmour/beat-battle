@@ -76,15 +76,17 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
                 });
 
                 // Add accidentals if needed
-                // Check for sharps
-                if (noteData.keys[0].includes('#')) {
-                    staveNote.addModifier(new Accidental('#'), 0);
-                }
-                // Check for flats (must be a letter followed by 'b', e.g., 'eb/4', 'bb/4')
-                // We use a regex to ensure we don't match 'b/4' (B natural) as a flat
-                else if (/[a-g]b\//.test(noteData.keys[0])) {
-                    staveNote.addModifier(new Accidental('b'), 0);
-                }
+                noteData.keys.forEach((key, index) => {
+                    // Check for sharps
+                    if (key.includes('#')) {
+                        staveNote.addModifier(new Accidental('#'), index);
+                    }
+                    // Check for flats (must be a letter followed by 'b', e.g., 'eb/4', 'bb/4')
+                    // We use a regex to ensure we don't match 'b/4' (B natural) as a flat
+                    else if (/[a-g]b\//.test(key)) {
+                        staveNote.addModifier(new Accidental('b'), index);
+                    }
+                });
 
                 // Add finger hint
                 if (noteData.finger) {
