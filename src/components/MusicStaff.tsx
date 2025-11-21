@@ -15,38 +15,52 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
 
         const resizeObserver = new ResizeObserver(entries => {
             for (const entry of entries) {
-                if (entry.contentBoxSize) {
-                    renderStaff(container, exercise, entry.contentRect.width)
+                if (entry.contentRect) {
+                    renderStaff(container, exercise, entry.contentRect.width, entry.contentRect.height)
                 }
             }
         })
 
         resizeObserver.observe(container)
 
-        renderStaff(container, exercise, container.clientWidth)
+        renderStaff(container, exercise, container.clientWidth, container.clientHeight)
 
         return () => {
             resizeObserver.disconnect()
         }
     }, [exercise])
 
-    const renderStaff = (container: HTMLDivElement, exercise: Exercise, width: number) => {
+    const renderStaff = (container: HTMLDivElement, exercise: Exercise, containerWidth: number, containerHeight: number) => {
         container.innerHTML = ''
 
-        const padding = 32
-        const availableWidth = width - padding * 2
+        // Logical dimensions for the VexFlow rendering
+        // We render to a fixed height coordinate system and let SVG scale it up
+        const LOGICAL_HEIGHT = 130
+        const aspectRatio = containerWidth / containerHeight
+        const logicalWidth = LOGICAL_HEIGHT * aspectRatio
+
+        const padding = 10
+        const availableWidth = logicalWidth - padding * 2
         const measureWidth = availableWidth / 4
-        const height = 220
 
         const renderer = new Renderer(container, Renderer.Backends.SVG)
-        renderer.resize(width, height)
+        renderer.resize(logicalWidth, LOGICAL_HEIGHT)
         const context = renderer.getContext()
         context.setFont('Bangers', 12)
         context.setFillStyle('#f7f7f7')
-        context.setStrokeStyle('#f7f7f7') // Ensure staff lines are white
+        context.setStrokeStyle('#f7f7f7')
+
+        // Set SVG to scale to container
+        const svg = container.querySelector('svg')
+        if (svg) {
+            svg.setAttribute('viewBox', `0 0 ${logicalWidth} ${LOGICAL_HEIGHT}`)
+            svg.setAttribute('width', '100%')
+            svg.setAttribute('height', '100%')
+            svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+        }
 
         let currentX = padding
-        const y = 40
+        const y = 30 // Tighter vertical positioning
 
         exercise.measures.forEach((measure, index) => {
             const stave = new Stave(currentX, y, measureWidth)
@@ -87,8 +101,6 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
 
                 if (noteData.fingers && noteData.fingers.length > 0) {
                     // Iterate in reverse order (High -> Low) to ensure correct vertical stacking
-                    // (First added = Closest to note = Top of stack)
-                    // We want High Note Finger (Top) -> Low Note Finger (Bottom)
                     for (let i = noteData.fingers.length - 1; i >= 0; i--) {
                         const finger = noteData.fingers[i];
                         staveNote.addModifier(
