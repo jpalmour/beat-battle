@@ -18,7 +18,26 @@ const RHYTHM_VALUES: Record<string, number> = {
 
 export function generateExercise(config: LevelConfig, exerciseId: string): Exercise {
     const measures: Measure[] = [];
-    let currentPitchIndex = getRandomStartIndex(config.range.min, config.range.max);
+
+    // 1. Select a 5-note window within the config range
+    const minIdx = PITCHES.indexOf(config.range.min);
+    const maxIdx = PITCHES.indexOf(config.range.max);
+
+    // Ensure we have at least 5 notes if possible, otherwise use what we have
+    const availableRange = maxIdx - minIdx + 1;
+    const windowSize = 5;
+
+    let windowStart = minIdx;
+    if (availableRange > windowSize) {
+        // Pick a random start index such that window fits in range
+        // maxStart = maxIdx - windowSize + 1
+        const maxStart = maxIdx - windowSize + 1;
+        windowStart = Math.floor(Math.random() * (maxStart - minIdx + 1)) + minIdx;
+    }
+    const windowEnd = Math.min(windowStart + windowSize - 1, maxIdx);
+
+    // 2. Generate notes within this window
+    let currentPitchIndex = getRandomStartIndex(PITCHES[windowStart], PITCHES[windowEnd]);
 
     // Determine global direction for Level 2/8 if needed
     let forcedDirection: 'up' | 'down' | null = null;
@@ -26,14 +45,13 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
         forcedDirection = Math.random() > 0.5 ? 'up' : 'down';
         // Adjust start index to allow room for movement
         if (forcedDirection === 'up') {
-            currentPitchIndex = Math.max(PITCHES.indexOf(config.range.min), Math.min(currentPitchIndex, PITCHES.indexOf(config.range.max) - 4));
+            currentPitchIndex = Math.max(windowStart, Math.min(currentPitchIndex, windowEnd - 3));
         } else {
-            currentPitchIndex = Math.min(PITCHES.indexOf(config.range.max), Math.max(currentPitchIndex, PITCHES.indexOf(config.range.min) + 4));
+            currentPitchIndex = Math.min(windowEnd, Math.max(currentPitchIndex, windowStart + 3));
         }
     }
 
-    const minIdx = PITCHES.indexOf(config.range.min);
-    const maxIdx = PITCHES.indexOf(config.range.max);
+    const usedPitchIndices = new Set<number>();
 
     for (let m = 0; m < 4; m++) {
         const measure: Note[] = [];
@@ -70,17 +88,17 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
 
                 let potentialIndex = currentPitchIndex + (stepSize * direction);
 
-                // Boundary check: use config range indices
-                if (potentialIndex < minIdx || potentialIndex > maxIdx) {
+                // Boundary check: use WINDOW indices
+                if (potentialIndex < windowStart || potentialIndex > windowEnd) {
                     if (forcedDirection) {
-                        potentialIndex = currentPitchIndex;
+                        potentialIndex = currentPitchIndex; // If forced, just repeat the note
                     } else {
-                        potentialIndex = currentPitchIndex - (stepSize * direction);
+                        potentialIndex = currentPitchIndex - (stepSize * direction); // Reverse direction
                     }
                 }
 
                 // Double check bounds after reverse
-                if (potentialIndex >= minIdx && potentialIndex <= maxIdx) {
+                if (potentialIndex >= windowStart && potentialIndex <= windowEnd) {
                     nextPitchIndex = potentialIndex;
                 } else {
                     nextPitchIndex = currentPitchIndex; // Fallback to repeat
@@ -88,6 +106,7 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
             }
 
             currentPitchIndex = nextPitchIndex;
+            usedPitchIndices.add(currentPitchIndex);
 
             // Handle Harmonic Intervals (Chords)
             let keys = [PITCHES[currentPitchIndex]];
@@ -114,12 +133,11 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
                     }
 
                     // Check if chord note is valid (exists in PITCHES)
-                    // We don't strictly enforce range min/max for the *added* note, 
-                    // but it must be a valid pitch to render.
-                    if (chordNoteIndex >= 0 && chordNoteIndex < PITCHES.length) {
+                    // AND fits within the 5-note window constraint
+                    if (chordNoteIndex >= windowStart && chordNoteIndex <= windowEnd) {
                         keys.push(PITCHES[chordNoteIndex]);
+                        usedPitchIndices.add(chordNoteIndex);
                         // Sort keys for VexFlow (bottom to top)
-                        // PITCHES is ordered low to high, so indices determine order
                         if (chordNoteIndex < currentPitchIndex) {
                             keys = [PITCHES[chordNoteIndex], PITCHES[currentPitchIndex]];
                         } else {
@@ -134,21 +152,8 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
             const note: Note = {
                 keys: keys,
                 duration: duration,
-                fingers: undefined
+                fingers: undefined // Will calculate later
             };
-
-            // Logic for Finger Hints
-            // 1. Always on the very first note of the exercise
-            if (measures.length === 0 && measure.length === 0) {
-                note.fingers = keys.map(k => getFingerHint(k, config.clef)).filter((f): f is string => !!f);
-            }
-            // 2. On the first chord (harmonic interval) of the exercise
-            else if (keys.length > 1 && !hasChordInMeasure) {
-                // We need a global flag for "first chord shown", but for now let's just do it per measure or check if we've seen one?
-                // The prompt asks for "first stacked interval that appears in an exercise".
-                // We need to track this outside the loop.
-                // Let's add a `hasShownChordHint` variable to the outer scope.
-            }
 
             measure.push(note);
             beatsRemaining -= RHYTHM_VALUES[duration];
@@ -156,16 +161,72 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
         measures.push(measure);
     }
 
-    // Post-processing to add chord hint to the FIRST chord found
-    let chordHintAdded = false;
-    for (const m of measures) {
-        for (const n of m) {
-            if (n.keys.length > 1 && !chordHintAdded) {
-                n.fingers = n.keys.map(k => getFingerHint(k, config.clef)).filter((f): f is string => !!f);
-                chordHintAdded = true;
-            }
+    // 3. Calculate Optimal Hand Position
+    // Find all valid positions (Thumb Index) that cover all usedPitchIndices
+    // A position P covers index I if:
+    // Treble (Thumb=Bottom): P <= I <= P + 4
+    // Bass (Thumb=Top): P - 4 <= I <= P
+
+    const usedIndices = Array.from(usedPitchIndices);
+    const minUsed = Math.min(...usedIndices);
+    const maxUsed = Math.max(...usedIndices);
+
+    let bestThumbIndex = -1;
+
+    if (config.clef === 'treble') {
+        // Valid Thumb P: maxUsed - 4 <= P <= minUsed
+        // We want HIGHEST P (Thumb as high as possible)
+        const possibleStart = Math.max(0, maxUsed - 4);
+        const possibleEnd = minUsed;
+
+        // Iterate downwards from possibleEnd to find highest valid P
+        for (let p = possibleEnd; p >= possibleStart; p--) {
+            bestThumbIndex = p;
+            break; // Found highest
+        }
+    } else {
+        // Bass (Thumb=Top)
+        // Valid Thumb P: minUsed + 4 >= P >= maxUsed
+        // We want LOWEST P (Thumb as low as possible)
+        const possibleStart = maxUsed;
+        const possibleEnd = Math.min(PITCHES.length - 1, minUsed + 4);
+
+        // Iterate upwards from possibleStart to find lowest valid P
+        for (let p = possibleStart; p <= possibleEnd; p++) {
+            bestThumbIndex = p;
+            break; // Found lowest
         }
     }
+
+    // 4. Assign Fingers
+    // Treble: Finger = NoteIdx - ThumbIdx + 1
+    // Bass: Finger = ThumbIdx - NoteIdx + 1
+
+    // Helper to get finger
+    const getFinger = (noteIdx: number) => {
+        if (bestThumbIndex === -1) return undefined;
+        if (config.clef === 'treble') {
+            return (noteIdx - bestThumbIndex + 1).toString();
+        } else {
+            return (bestThumbIndex - noteIdx + 1).toString();
+        }
+    };
+
+    // Apply to first note and first chord
+    let chordHintAdded = false;
+    measures.forEach((m, mIdx) => {
+        m.forEach((n, nIdx) => {
+            // First note of exercise
+            if (mIdx === 0 && nIdx === 0) {
+                n.fingers = n.keys.map(k => getFinger(PITCHES.indexOf(k))).filter((f): f is string => !!f);
+            }
+            // First chord
+            else if (n.keys.length > 1 && !chordHintAdded) {
+                n.fingers = n.keys.map(k => getFinger(PITCHES.indexOf(k))).filter((f): f is string => !!f);
+                chordHintAdded = true;
+            }
+        });
+    });
 
     return {
         id: exerciseId,
@@ -180,37 +241,4 @@ function getRandomStartIndex(min: string, max: string): number {
     const maxIdx = PITCHES.indexOf(max);
     if (minIdx === -1 || maxIdx === -1) return 0; // Fallback
     return Math.floor(Math.random() * (maxIdx - minIdx + 1)) + minIdx;
-}
-
-// Heuristic for finger hints
-function getFingerHint(pitch: string, clef: 'treble' | 'bass'): string | undefined {
-    // Treble (RH): C4=1, D4=2, E4=3, F4=4, G4=5
-    // Bass (LH): C4=1, B3=2, A3=3, G3=4, F3=5 (Middle C position)
-    // Or G-position: G2=5, A2=4, B2=3, C3=2, D3=1
-
-    // Let's try to cover a reasonable range for the levels we have.
-
-    if (clef === 'treble') {
-        const map: Record<string, string> = {
-            'c/4': '1', 'd/4': '2', 'e/4': '3', 'f/4': '4', 'g/4': '5',
-            'a/4': '1', 'b/4': '2', 'c/5': '3', 'd/5': '4', 'e/5': '5', 'f/5': '1' // Extended
-        };
-        return map[pitch];
-    } else {
-        // Bass Clef (Left Hand)
-        // Middle C Position (common for early levels)
-        const map: Record<string, string> = {
-            'c/4': '1',
-            'b/3': '2',
-            'a/3': '3',
-            'g/3': '4',
-            'f/3': '5',
-            'e/3': '1', // Shift?
-            'd/3': '2',
-            'c/3': '3',
-            // Low G position
-            'g/2': '5', 'a/2': '4', 'b/2': '3'
-        };
-        return map[pitch];
-    }
 }
