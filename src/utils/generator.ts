@@ -56,7 +56,6 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
     for (let m = 0; m < 4; m++) {
         const measure: Note[] = [];
         let beatsRemaining = 4;
-        let hasChordInMeasure = false;
 
         while (beatsRemaining > 0) {
             // Pick a rhythm that fits
@@ -110,8 +109,8 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
 
             // Handle Harmonic Intervals (Chords)
             let keys = [PITCHES[currentPitchIndex]];
-            if (config.harmonicIntervals && !hasChordInMeasure && beatsRemaining > 0) {
-                // 75% chance to make a chord if allowed and haven't yet in this bar
+            if (config.harmonicIntervals && beatsRemaining > 0) {
+                // 75% chance to make a chord if allowed
                 if (Math.random() > 0.25) {
                     const intervalName = config.harmonicIntervals[Math.floor(Math.random() * config.harmonicIntervals.length)];
                     let intervalSize = 0;
@@ -143,7 +142,6 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
                         } else {
                             keys = [PITCHES[currentPitchIndex], PITCHES[chordNoteIndex]];
                         }
-                        hasChordInMeasure = true;
                     }
                 }
             }
