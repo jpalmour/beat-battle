@@ -43,6 +43,7 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
         const context = renderer.getContext()
         context.setFont('Bangers', 12)
         context.setFillStyle('#f7f7f7')
+        context.setStrokeStyle('#f7f7f7') // Ensure staff lines are white
 
         let currentX = padding
         const y = 40
@@ -68,6 +69,9 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
                     duration: noteData.duration,
                     clef: exercise.clef
                 })
+
+                // Style note heads and stems
+                staveNote.setStyle({ fillStyle: '#f7f7f7', strokeStyle: '#f7f7f7' })
 
                 // Add accidentals if needed
                 noteData.keys.forEach((key, index) => {
