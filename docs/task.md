@@ -28,13 +28,14 @@
 - [x] **Phase 5: Scalable Content Engine (The Generator)**
     - [x] Design `ExerciseGenerator` logic (intervals, rhythm, range constraints)
     - [x] Implement Level Configurations (Level 1: Repeats, Level 2: Steps, etc.)
+    - [x] Add Levels 5-12 (Mixed, Chords, Bass Clef)
     - [x] Generate 10+ exercises per level dynamically
     - [x] Update Level Selector to handle multiple levels
 
-- [ ] **Phase 5.5: GitHub Pages Deployment**
-    - [ ] Configure `vite.config.ts` (base path)
-    - [ ] Create GitHub Action Workflow (`.github/workflows/deploy.yml`)
-    - [ ] Create `gh-pages` branch (orphan)
+- [x] **Phase 5.5: GitHub Pages Deployment**
+    - [x] Configure `vite.config.ts` (base path)
+    - [x] Create GitHub Action Workflow (`.github/workflows/deploy.yml`)
+    - [x] Create `gh-pages` branch (orphan)
 
 - [ ] **Phase 6: Expanded UI & Navigation**
     - [ ] Sidebar/Menu for Level Selection

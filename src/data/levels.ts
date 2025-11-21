@@ -1,13 +1,14 @@
 export interface LevelConfig {
-    id: string
-    title: string
-    shortLabel?: string
-    description: string
-    clef: 'treble' | 'bass'
-    range: { min: string; max: string }
-    intervals: ('repeat' | 'step' | 'skip')[]
-    motion: 'any' | 'unidirectional' | 'mixed'
-    rhythms: ('w' | 'h' | 'q')[]
+    id: string;
+    title: string;
+    shortLabel?: string;
+    description: string;
+    clef: 'treble' | 'bass';
+    range: { min: string; max: string }; // e.g. 'c/4', 'f/5'
+    intervals: ('repeat' | 'step' | 'skip')[]; // Allowed intervals
+    motion: 'any' | 'unidirectional' | 'mixed'; // Constraint for Level 2
+    rhythms: ('w' | 'h' | 'q')[]; // Allowed note durations
+    harmonicIntervals?: ('2nd' | '3rd' | '4th' | '5th')[]; // Allowed harmonic intervals (chords)
 }
 
 export const levels: LevelConfig[] = [
@@ -57,90 +58,93 @@ export const levels: LevelConfig[] = [
     },
     {
         id: 'level5',
-        title: 'Level 5: Skips & Steps',
+        title: 'Level 5: Mixed Intervals',
         shortLabel: 'Block 5',
-        description: 'Blend skips and steps with tighter bounds.',
+        description: 'Steps, skips, and repeats combined.',
         clef: 'treble',
-        range: { min: 'd/4', max: 'g/5' },
-        intervals: ['skip', 'step', 'repeat'],
-        motion: 'mixed',
+        range: { min: 'c/4', max: 'f/5' },
+        intervals: ['step', 'skip', 'repeat'],
+        motion: 'any',
         rhythms: ['w', 'h', 'q']
     },
     {
         id: 'level6',
-        title: 'Level 6: Bass Steps',
+        title: 'Level 6: Chords (Treble)',
         shortLabel: 'Block 6',
-        description: 'Switch to bass clef with smooth step motion.',
-        clef: 'bass',
-        range: { min: 'c/3', max: 'e/4' },
-        intervals: ['step', 'repeat'],
-        motion: 'mixed',
-        rhythms: ['w', 'h', 'q']
+        description: 'Introducing harmonic intervals (2 notes).',
+        clef: 'treble',
+        range: { min: 'c/4', max: 'f/5' },
+        intervals: ['repeat'],
+        motion: 'any',
+        rhythms: ['w', 'h', 'q'],
+        harmonicIntervals: ['2nd', '3rd', '4th', '5th']
     },
+    // Bass Clef Levels
     {
         id: 'level7',
-        title: 'Level 7: Bass Skips',
+        title: 'Level 7: Bass Clef Repeats',
         shortLabel: 'Block 7',
-        description: 'Bass clef with skips and repeats.',
+        description: 'Left hand rhythm and repeats.',
         clef: 'bass',
-        range: { min: 'c/3', max: 'g/4' },
-        intervals: ['skip', 'repeat'],
+        range: { min: 'g/2', max: 'c/4' },
+        intervals: ['repeat'],
         motion: 'any',
         rhythms: ['w', 'h', 'q']
     },
     {
         id: 'level8',
-        title: 'Level 8: Mixed Clef Steps',
+        title: 'Level 8: Bass Steps (One Way)',
         shortLabel: 'Block 8',
-        description: 'Treble clef with tighter range and steps.',
-        clef: 'treble',
-        range: { min: 'b/3', max: 'd/5' },
+        description: 'Bass clef steps going up or down.',
+        clef: 'bass',
+        range: { min: 'g/2', max: 'c/4' },
         intervals: ['step', 'repeat'],
-        motion: 'mixed',
+        motion: 'unidirectional',
         rhythms: ['w', 'h', 'q']
     },
     {
         id: 'level9',
-        title: 'Level 9: Bold Skips',
+        title: 'Level 9: Bass Steps (Mixed)',
         shortLabel: 'Block 9',
-        description: 'Push wider skips and direction changes.',
-        clef: 'treble',
-        range: { min: 'c/4', max: 'a/5' },
-        intervals: ['skip', 'step', 'repeat'],
+        description: 'Bass clef steps moving freely.',
+        clef: 'bass',
+        range: { min: 'g/2', max: 'c/4' },
+        intervals: ['step', 'repeat'],
         motion: 'mixed',
         rhythms: ['w', 'h', 'q']
     },
     {
         id: 'level10',
-        title: 'Level 10: Low Steps',
+        title: 'Level 10: Bass Skips',
         shortLabel: 'Block 10',
-        description: 'Stay grounded with low register steps.',
+        description: 'Bass clef skips (3rds).',
         clef: 'bass',
-        range: { min: 'a/2', max: 'd/4' },
-        intervals: ['step', 'repeat'],
-        motion: 'mixed',
+        range: { min: 'g/2', max: 'c/4' },
+        intervals: ['skip', 'repeat'],
+        motion: 'any',
         rhythms: ['w', 'h', 'q']
     },
     {
         id: 'level11',
-        title: 'Level 11: Pulse & Repeats',
+        title: 'Level 11: Bass Mixed',
         shortLabel: 'Block 11',
-        description: 'Rhythmic repeats with tight motion.',
-        clef: 'treble',
-        range: { min: 'd/4', max: 'g/5' },
-        intervals: ['repeat', 'step'],
-        motion: 'unidirectional',
+        description: 'Bass clef steps, skips, and repeats.',
+        clef: 'bass',
+        range: { min: 'g/2', max: 'c/4' },
+        intervals: ['step', 'skip', 'repeat'],
+        motion: 'any',
         rhythms: ['w', 'h', 'q']
     },
     {
         id: 'level12',
-        title: 'Level 12: Freestyle Finale',
+        title: 'Level 12: Bass Chords',
         shortLabel: 'Block 12',
-        description: 'Full mix of steps, skips, and repeats.',
-        clef: 'treble',
-        range: { min: 'c/4', max: 'a/5' },
-        intervals: ['repeat', 'step', 'skip'],
-        motion: 'mixed',
-        rhythms: ['w', 'h', 'q']
+        description: 'Bass clef harmonic intervals.',
+        clef: 'bass',
+        range: { min: 'g/2', max: 'c/4' },
+        intervals: ['repeat'],
+        motion: 'any',
+        rhythms: ['w', 'h', 'q'],
+        harmonicIntervals: ['2nd', '3rd', '4th', '5th']
     }
-]
+];
