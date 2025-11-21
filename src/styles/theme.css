@@ -1,29 +1,25 @@
 :root {
-  /* Color Palette - Swiftie/Pink/Purple Theme */
-  --color-primary: #FF69B4; /* Hot Pink */
-  --color-primary-light: #FFB6C1; /* Light Pink */
-  --color-secondary: #9370DB; /* Medium Purple */
-  --color-secondary-dark: #8A2BE2; /* Blue Violet */
-  --color-accent: #FFD700; /* Gold (Sparkles!) */
-  
-  --color-background: #FFF0F5; /* Lavender Blush */
-  --color-surface: #FFFFFF;
-  
-  --color-text-main: #4A4A4A;
-  --color-text-light: #FFFFFF;
+  --color-primary: #00f6ff;
+  --color-primary-light: #7cf4ff;
+  --color-secondary: #ff4ddb;
+  --color-secondary-dark: #1de5a9;
+  --color-accent: #f6ff80;
 
-  /* Typography */
-  --font-main: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  --font-display: 'Comic Sans MS', 'Chalkboard SE', sans-serif; /* Fun font for headers */
+  --color-background: #0b0f15;
+  --color-surface: #101721;
 
-  /* Spacing */
+  --color-text-main: #e5e7eb;
+  --color-text-light: #ffffff;
+
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Bangers', cursive;
+
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
 
-  /* Borders */
   --radius-sm: 8px;
   --radius-md: 16px;
   --radius-lg: 24px;

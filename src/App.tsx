@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import './App.css'
 import MusicStaff from './components/MusicStaff'
 import LevelSelector from './components/LevelSelector'
@@ -7,13 +7,14 @@ import { generateExercise } from './utils/generator'
 import type { Exercise } from './types/music'
 
 function App() {
-  const [started, setStarted] = useState(false)
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0)
-  // Initialize with a generated exercise
   const [currentExercise, setCurrentExercise] = useState<Exercise>(() =>
     generateExercise(levels[0], 'init')
   )
   const [exerciseCount, setExerciseCount] = useState(1)
+
+  const streetScore = useMemo(() => 4850 + currentLevelIndex * 25, [currentLevelIndex])
+  const progressValue = useMemo(() => Math.min(80 + currentLevelIndex * 2, 98), [currentLevelIndex])
 
   const handleNext = () => {
     const nextExercise = generateExercise(levels[currentLevelIndex], `ex-${Date.now()}`)
@@ -23,77 +24,81 @@ function App() {
 
   const handleLevelSelect = (index: number) => {
     setCurrentLevelIndex(index)
-    // Generate new exercise for the new level immediately
     const nextExercise = generateExercise(levels[index], `ex-${Date.now()}`)
     setCurrentExercise(nextExercise)
-    setExerciseCount(1) // Reset count for new level
-  }
-
-  const handleBack = () => {
-    setStarted(false)
-    // Optional: Reset level or keep it? Let's keep it.
+    setExerciseCount(1)
   }
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <div className="header-content">
-          <h1 className="app-title">
-            Zora's Piano Adventure
-          </h1>
-          <p className="app-subtitle">
-            Ready to play? 🎵🎹✨
-          </p>
-        </div>
-      </header>
-
-      <main className="main-stage">
-        {!started ? (
-          <div className="welcome-card glass-panel">
-            <button
-              onClick={() => setStarted(true)}
-              className="primary-button"
-            >
-              Let's Go! 🚀
-            </button>
-          </div>
-        ) : (
-          <div className="game-area glass-panel">
+    <div className="app-shell">
+      <div className="graffiti-overlay" />
+      <main className="battle-stage">
+        <header className="hud">
+          <div className="hud-left">
+            <span className="spray-label">Levels</span>
             <LevelSelector
               levels={levels}
               currentLevelIndex={currentLevelIndex}
               onSelectLevel={handleLevelSelect}
             />
+          </div>
 
-            <div className="level-header">
-              <span className="level-badge">{levels[currentLevelIndex].title}</span>
-              <h2>{currentExercise.title}</h2>
-              <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>
-                Exercise #{exerciseCount}
-              </p>
+          <div className="hud-title">
+            <p className="eyebrow">Zora's Beat Battle</p>
+            <h1 className="headline">Block {currentLevelIndex + 1}</h1>
+          </div>
+
+          <div className="score-card">
+            <div className="score-header">
+              <span className="score-label">Street Score</span>
+              <span className="score-value">{streetScore}</span>
             </div>
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: `${progressValue}%` }}>
+                <span className="progress-text">{progressValue}%</span>
+              </div>
+            </div>
+          </div>
+        </header>
 
-            <div className="staff-wrapper">
-              <MusicStaff exercise={currentExercise} />
+        <section className="board">
+          <div className="board-header">
+            <div>
+              <p className="tagline">Zora's Beat Battle</p>
+              <div className="block-label">Beat Pattern</div>
+            </div>
+            <div className="exercise-meta">
+              <span className="meta-chip">Level {currentLevelIndex + 1}</span>
+              <span className="meta-chip ghost">Exercise #{exerciseCount}</span>
+            </div>
+          </div>
+
+          <div className="staff-panel">
+            <MusicStaff exercise={currentExercise} />
+          </div>
+
+          <div className="board-footer">
+            <div className="user-plate">
+              <div className="graffiti-tag">Zora Beats</div>
+              <div className="user-details">
+                <span>User: Zora</span>
+                <span>Combo: 12x</span>
+              </div>
             </div>
 
             <div className="controls">
-              <button
-                onClick={handleBack}
-                className="secondary-button"
-              >
+              <button className="ghost-button" onClick={() => handleLevelSelect(Math.max(currentLevelIndex - 1, 0))}>
                 Back
               </button>
-
-              <button
-                onClick={handleNext}
-                className="primary-button"
-              >
-                Next Song ➡️
+              <button className="ghost-button" onClick={handleNext}>
+                Next Track
+              </button>
+              <button className="drop-button" onClick={handleNext}>
+                Drop the Beat
               </button>
             </div>
           </div>
-        )}
+        </section>
       </main>
     </div>
   )
