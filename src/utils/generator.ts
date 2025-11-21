@@ -134,14 +134,37 @@ export function generateExercise(config: LevelConfig, exerciseId: string): Exerc
             const note: Note = {
                 keys: keys,
                 duration: duration,
-                // Add finger hint only on very first note of exercise
-                finger: (measures.length === 0 && measure.length === 0) ? getFingerHint(PITCHES[currentPitchIndex]) : undefined
+                fingers: undefined
             };
+
+            // Logic for Finger Hints
+            // 1. Always on the very first note of the exercise
+            if (measures.length === 0 && measure.length === 0) {
+                note.fingers = keys.map(k => getFingerHint(k, config.clef)).filter((f): f is string => !!f);
+            }
+            // 2. On the first chord (harmonic interval) of the exercise
+            else if (keys.length > 1 && !hasChordInMeasure) {
+                // We need a global flag for "first chord shown", but for now let's just do it per measure or check if we've seen one?
+                // The prompt asks for "first stacked interval that appears in an exercise".
+                // We need to track this outside the loop.
+                // Let's add a `hasShownChordHint` variable to the outer scope.
+            }
 
             measure.push(note);
             beatsRemaining -= RHYTHM_VALUES[duration];
         }
         measures.push(measure);
+    }
+
+    // Post-processing to add chord hint to the FIRST chord found
+    let chordHintAdded = false;
+    for (const m of measures) {
+        for (const n of m) {
+            if (n.keys.length > 1 && !chordHintAdded) {
+                n.fingers = n.keys.map(k => getFingerHint(k, config.clef)).filter((f): f is string => !!f);
+                chordHintAdded = true;
+            }
+        }
     }
 
     return {
@@ -159,12 +182,35 @@ function getRandomStartIndex(min: string, max: string): number {
     return Math.floor(Math.random() * (maxIdx - minIdx + 1)) + minIdx;
 }
 
-// Simple heuristic for finger hints (assuming RH C position for simplicity for now)
-function getFingerHint(pitch: string): string | undefined {
-    // This is tricky without knowing hand position. 
-    // For Level 1/2 usually Middle C position.
-    const map: Record<string, string> = {
-        'c/4': '1', 'd/4': '2', 'e/4': '3', 'f/4': '4', 'g/4': '5'
-    };
-    return map[pitch];
+// Heuristic for finger hints
+function getFingerHint(pitch: string, clef: 'treble' | 'bass'): string | undefined {
+    // Treble (RH): C4=1, D4=2, E4=3, F4=4, G4=5
+    // Bass (LH): C4=1, B3=2, A3=3, G3=4, F3=5 (Middle C position)
+    // Or G-position: G2=5, A2=4, B2=3, C3=2, D3=1
+
+    // Let's try to cover a reasonable range for the levels we have.
+
+    if (clef === 'treble') {
+        const map: Record<string, string> = {
+            'c/4': '1', 'd/4': '2', 'e/4': '3', 'f/4': '4', 'g/4': '5',
+            'a/4': '1', 'b/4': '2', 'c/5': '3', 'd/5': '4', 'e/5': '5', 'f/5': '1' // Extended
+        };
+        return map[pitch];
+    } else {
+        // Bass Clef (Left Hand)
+        // Middle C Position (common for early levels)
+        const map: Record<string, string> = {
+            'c/4': '1',
+            'b/3': '2',
+            'a/3': '3',
+            'g/3': '4',
+            'f/3': '5',
+            'e/3': '1', // Shift?
+            'd/3': '2',
+            'c/3': '3',
+            // Low G position
+            'g/2': '5', 'a/2': '4', 'b/2': '3'
+        };
+        return map[pitch];
+    }
 }

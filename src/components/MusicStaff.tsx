@@ -47,7 +47,6 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
 
         let currentX = padding
         const y = 40
-        let hasShownFinger = false
 
         exercise.measures.forEach((measure, index) => {
             const stave = new Stave(currentX, y, measureWidth)
@@ -86,15 +85,19 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
                     }
                 });
 
-                if (noteData.finger && !hasShownFinger) {
-                    staveNote.addModifier(
-                        new Annotation(noteData.finger)
-                            .setFont('Bangers', 16, 'normal')
-                            .setVerticalJustification(Annotation.VerticalJustify.BOTTOM)
-                            .setStyle({ fillStyle: '#f2ff5d' }),
-                        0
-                    )
-                    hasShownFinger = true
+                if (noteData.fingers && noteData.fingers.length > 0) {
+                    noteData.fingers.forEach((finger, index) => {
+                        // If we have multiple fingers (chord), we need to map them to the correct note head index.
+                        // The generator provides fingers in the same order as keys (low to high).
+                        // VexFlow indices match this order.
+                        staveNote.addModifier(
+                            new Annotation(finger)
+                                .setFont('Bangers', 16, 'normal')
+                                .setVerticalJustification(Annotation.VerticalJustify.BOTTOM)
+                                .setStyle({ fillStyle: '#f2ff5d' }),
+                            index
+                        )
+                    })
                 }
 
                 return staveNote

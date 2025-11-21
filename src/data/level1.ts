@@ -7,7 +7,7 @@ export const level1Exercises: Exercise[] = [
         clef: 'treble',
         measures: [
             [ // Bar 1
-                { keys: ['c/4'], duration: 'q', finger: '1' },
+                { keys: ['c/4'], duration: 'q', fingers: ['1'] },
                 { keys: ['d/4'], duration: 'q' },
                 { keys: ['e/4'], duration: 'q' },
                 { keys: ['f/4'], duration: 'q' },
@@ -32,7 +32,7 @@ export const level1Exercises: Exercise[] = [
         clef: 'treble',
         measures: [
             [
-                { keys: ['c/4'], duration: 'q', finger: '1' },
+                { keys: ['c/4'], duration: 'q', fingers: ['1'] },
                 { keys: ['d/4'], duration: 'q' },
                 { keys: ['e/4'], duration: 'h' },
             ],
@@ -57,7 +57,7 @@ export const level1Exercises: Exercise[] = [
         clef: 'treble',
         measures: [
             [
-                { keys: ['c/4'], duration: 'q', finger: '1' },
+                { keys: ['c/4'], duration: 'q', fingers: ['1'] },
                 { keys: ['e/4'], duration: 'q' },
                 { keys: ['g/4'], duration: 'h' },
             ],

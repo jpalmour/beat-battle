@@ -1,7 +1,7 @@
 export interface Note {
     keys: string[]; // e.g. ["c/4"]
     duration: string; // e.g. "q", "h", "w"
-    finger?: string; // e.g. "1", "2"
+    fingers?: string[]; // e.g. ["1"], ["1", "3"]
     text?: string; // Lyrics or annotations below the note
 }
 
