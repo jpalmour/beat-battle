@@ -60,7 +60,7 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
         }
 
         let currentX = padding
-        const y = 10 // Tighter vertical positioning
+        const y = 1 // Maximized vertical positioning
 
         exercise.measures.forEach((measure, index) => {
             const stave = new Stave(currentX, y, measureWidth)
