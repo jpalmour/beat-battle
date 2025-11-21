@@ -603,8 +603,8 @@
     .title-image {
         max-height: 120px;
         /* Larger title */
-        margin: 0 auto -45px;
-        /* Negative margin for overlap */
+        margin: 12px 24px -45px 0;
+        /* Top, Right, Bottom, Left - Push down and add space to right */
     }
 
     .headline {
