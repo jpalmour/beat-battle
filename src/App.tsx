@@ -112,7 +112,7 @@ function App() {
         </header>
 
         <section className="board">
-          <div className="board-header">
+          <div className="board-header desktop-only">
             <div className="header-left">
               <div className="block-label">Beat Pattern</div>
             </div>
@@ -130,11 +130,20 @@ function App() {
           </div>
 
           <div className="board-footer">
-            <div className="user-plate">
+            <div className="user-plate desktop-only">
               <div className="graffiti-tag">Zora Beats</div>
               <div className="user-details">
                 <span>User: Zora</span>
                 <span>Combo: {score > 0 ? Math.floor(score / 500) : 0}x</span>
+              </div>
+            </div>
+
+            <div className="mobile-landscape-info mobile-landscape-only">
+              <div className="level-name-small">{levels[currentLevelIndex].name}</div>
+              <div className="exercise-meta-small">
+                <span>Level {currentLevelIndex + 1}</span>
+                <span>•</span>
+                <span>Ex #{exerciseCount}</span>
               </div>
             </div>
 

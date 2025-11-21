@@ -518,3 +518,152 @@
         display: none !important;
     }
 }
+
+/* Mobile Landscape Optimization */
+.mobile-landscape-only {
+    display: none;
+}
+
+.desktop-only {
+    display: flex;
+    /* or block depending on element */
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+
+    .hud-left,
+    .user-plate,
+    .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-landscape-only {
+        display: flex !important;
+    }
+
+    .battle-stage {
+        padding: 12px 32px;
+        /* Reduce vertical padding */
+        gap: 12px;
+        height: 100vh;
+        justify-content: center;
+    }
+
+    .hud {
+        grid-template-columns: auto auto;
+        /* Title | Score */
+        justify-content: center;
+        gap: 40px;
+        padding: 8px 20px;
+        flex: 0 0 auto;
+        /* Don't grow/shrink */
+    }
+
+    .hud-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .title-image {
+        max-height: 50px;
+        /* Smaller title */
+        margin: 0;
+    }
+
+    .headline {
+        font-size: 24px;
+        margin: 0;
+    }
+
+    .score-card {
+        flex-direction: row;
+        /* Inline score */
+        width: auto;
+        gap: 16px;
+    }
+
+    .score-header {
+        flex-direction: row;
+        width: auto;
+        margin: 0;
+        gap: 8px;
+    }
+
+    .score-label-img {
+        height: 40px;
+    }
+
+    .score-value {
+        font-size: 24px;
+    }
+
+    .progress-track {
+        width: 140px;
+        height: 18px;
+    }
+
+    .board {
+        flex: 1;
+        /* Take remaining height */
+        padding: 0 20px;
+        min-height: 0;
+        /* Allow shrinking */
+        justify-content: center;
+        gap: 0;
+    }
+
+    .staff-panel {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        padding: 4px 14px;
+        min-height: 0;
+    }
+
+    .music-staff-container svg {
+        max-height: 100%;
+        /* Ensure it fits vertically */
+        width: auto;
+        /* Maintain aspect ratio */
+        max-width: 100%;
+        margin: 0 auto;
+        display: block;
+    }
+
+    .board-footer {
+        flex: 0 0 auto;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .mobile-landscape-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .level-name-small {
+        font-family: 'Bangers', cursive;
+        font-size: 24px;
+        color: #ff00ff;
+        text-transform: uppercase;
+        text-shadow: 1px 1px 0 #00ffff;
+        transform: rotate(-2deg);
+    }
+
+    .exercise-meta-small {
+        display: flex;
+        gap: 8px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 12px;
+        color: #94a3b8;
+        text-transform: uppercase;
+    }
+
+    .drop-button img {
+        height: 80px;
+        /* Smaller button */
+    }
+}
