@@ -68,6 +68,13 @@ function App() {
 
   return (
     <div className="app-shell">
+      <div className="portrait-lock">
+        <div className="lock-content">
+          <span className="rotate-icon">↻</span>
+          <h2>Rotate Your Device</h2>
+          <p>This game is best played in landscape mode!</p>
+        </div>
+      </div>
       <div className="graffiti-overlay" />
       {showLevelUp && (
         <div className="celebration-overlay">
