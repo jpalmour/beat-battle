@@ -59,7 +59,6 @@ export function useExerciseEngine({ exercise, detectedNote, isRecording, onCompl
         if (isWaitingForRelease) {
             // Unlock if stable note is null (silence) OR different from locked note
             if (!stableNote || (lockedNote && stableNote.note !== lockedNote)) {
-                console.log(`[Engine] Released! Locked=${lockedNote}, New=${stableNote?.note}`);
                 setIsWaitingForRelease(false);
                 setLockedNote(null);
             }
@@ -74,8 +73,6 @@ export function useExerciseEngine({ exercise, detectedNote, isRecording, onCompl
         const targetKey = targetNote.keys[0];
         const [noteName, octave] = targetKey.split('/');
         const normalizedTarget = `${noteName.toUpperCase()}${octave}`;
-
-        console.log(`[Engine] Evaluating: Stable=${stableNote.note}, Target=${normalizedTarget}`);
 
         const isMatch = stableNote.note === normalizedTarget;
 

@@ -74,6 +74,9 @@ function App() {
     onComplete: handleExerciseComplete
   })
 
+  // Check for debug mode
+  const showDebug = new URLSearchParams(window.location.search).get('debug') === 'true';
+
   const progressValue = Math.min((progressCount / 5) * 100, 100)
 
   const handleNextExercise = () => {
@@ -112,14 +115,16 @@ function App() {
       )}
 
       {/* DEBUG OVERLAY */}
-      <div style={{ position: 'fixed', top: 10, left: 10, background: 'rgba(0,0,0,0.8)', color: 'lime', padding: '10px', zIndex: 9999, fontFamily: 'monospace', fontSize: '12px', pointerEvents: 'none' }}>
-        <div>DETECTED: {detectedNote?.note || '--'}</div>
-        <div>TARGET: {debug.targetKey}</div>
-        <div>STABLE: {debug.stableNote || '--'}</div>
-        <div>LOCKED: {debug.lockedNote || '--'}</div>
-        <div>WAITING: {debug.isWaitingForRelease ? 'YES' : 'NO'}</div>
-        <div>REC: {isRecording ? 'ON' : 'OFF'}</div>
-      </div>
+      {showDebug && (
+        <div style={{ position: 'fixed', top: 10, left: 10, background: 'rgba(0,0,0,0.8)', color: 'lime', padding: '10px', zIndex: 9999, fontFamily: 'monospace', fontSize: '12px', pointerEvents: 'none' }}>
+          <div>DETECTED: {detectedNote?.note || '--'}</div>
+          <div>TARGET: {debug.targetKey}</div>
+          <div>STABLE: {debug.stableNote || '--'}</div>
+          <div>LOCKED: {debug.lockedNote || '--'}</div>
+          <div>WAITING: {debug.isWaitingForRelease ? 'YES' : 'NO'}</div>
+          <div>REC: {isRecording ? 'ON' : 'OFF'}</div>
+        </div>
+      )}
 
       <main className="battle-stage">
         <header className="hud">

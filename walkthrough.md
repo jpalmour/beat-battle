@@ -1,19 +1,25 @@
-# Tuning & Sensitivity Walkthrough
+# Note Detection & Matching - Feature Complete
 
-I have tuned the note detection to match your setup and improve sensitivity.
+The "Note Detection & Matching" feature has been successfully implemented and verified.
 
-## Changes
+## Summary of Work
+1.  **Real-Time Detection**: Integrated `pitchy` to detect piano notes via microphone.
+2.  **Game Engine**: Implemented `useExerciseEngine` to manage game state, note matching, and progression.
+3.  **Refinements**:
+    - **Recording Mode**: Added a "Drop the Beat" toggle with a visual "REC" light.
+    - **Stability**: Implemented a 100ms debounce to prevent flickering.
+    - **Ghost Note Suppression**: Added an RMS volume gate to ignore background noise.
+    - **Tuning**: Adjusted octave offset (-1) and sensitivity for optimal experience.
+4.  **UI/UX**:
+    - Always-on note display in the HUD.
+    - Visual feedback (Green/Red) on the music staff.
+    - "Level Up" celebration animation.
 
-### Note Detection (`src/utils/noteDetection.ts`)
-- **Octave Offset**: Adjusted the octave calculation by -1. This should align "C5" on your keyboard with "C5" in the game (previously it was showing C6).
-- **Sensitivity**: Lowered the volume threshold (RMS) from 0.01 to 0.005. This makes the microphone twice as sensitive to quiet notes, so you shouldn't have to crank the volume as high.
-
-## Verification
-
-### Manual Verification Steps
-1.  **Octave Check**: Play C5 on your keyboard. Verify the game now displays **C5** (not C6).
-2.  **Sensitivity Check**: Play at a normal/comfortable volume. Verify the note is detected reliably.
-3.  **Ghost Note Check**: Ensure that when you stop playing, the detected note still goes to `--` (no ghost notes from background noise).
+## Verification Results
+- **Detection**: Accurately detects notes from the user's piano setup.
+- **Matching**: Correctly identifies target notes and advances the game.
+- **Error Handling**: Incorrect notes are marked red, and the game advances.
+- **Performance**: No ghost notes, stable detection, and responsive UI.
 
 ## Next Steps
-- If this feels good, we are ready to move on to the next feature!
+- Proceed to the next objective in the project plan (e.g., "Level Progression & Storage" or "New Exercise Types").
