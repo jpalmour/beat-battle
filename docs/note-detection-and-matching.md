@@ -1,0 +1,82 @@
+Implementation Plan – Product Requirements Document (PRD)
+
+Below is a Product Requirements Document outlining the features and steps to implement the piano note detection and feedback functionality incrementally. The PRD is organized into three phases, matching the feature goals, along with technical guidelines and acceptance criteria for each. The target platform is modern browsers on iPad/iPhone (Safari, Chrome) and desktop.
+
+1. Real-Time Single Note Detection & Display
+
+Objective: Enable the app to listen via the device’s microphone and identify a single piano note being played, displaying its name (e.g., “C4”) in real time. The detection should be stable – filtering out background noise and ignoring very brief spurious tones – to provide a smooth user experience.
+
+User Story: “As a learner, when I play a note on my piano, I want the app to recognize it and show me the note name instantly, so I know I played the correct note.”
+
+Functional Requirements:
+	•	Microphone Access & Audio Pipeline: On user action (e.g., clicking a “Start Listening” button due to browser permissions), activate the microphone via the Web Audio API. Create an AudioContext and connect the mic input (MediaStreamAudioSourceNode). Ensure this works on iOS Safari (requires a user gesture to start audio).
+	•	Pitch Detection Algorithm: Use the Pitchy library to analyze the audio input in real time. Technical steps:
+	•	Initialize a PitchDetector (e.g., PitchDetector.forFloat32Array(bufferSize)) with an appropriate bufferSize (likely 1024 or 2048 samples). A larger buffer improves low-note detection but adds a bit more latency – we’ll choose a reasonable trade-off (2048 at 44.1kHz ~ 46ms frame).
+	•	Create a mechanism to feed audio data into Pitchy. For example, use a ScriptProcessorNode or AudioWorkletNode to get raw PCM samples from the audio stream, or use an AnalyserNode to pull time-domain data each animation frame. (AnalyserNode approach: call getFloatTimeDomainData() on a schedule ~60 times per second and pass that Float32Array to Pitchy’s findPitch().)
+	•	With Pitchy, call pitch = detector.findPitch(frameBuffer, sampleRate). This returns a tuple [frequency, clarity] ￼. If clarity < a chosen threshold (e.g., 0.8), treat it as “no stable pitch” – i.e., ignore as noise or silence. This prevents random noise from registering as a note.
+	•	Frequency to Note Conversion: Convert the detected frequency (Hz) to a musical note name with octave. Implement a utility to map frequency -> nearest MIDI note number -> note name (e.g., using A440 tuning: midi = 69 + 12*log2(freq/440) and rounding to nearest integer). Then map MIDI to name (e.g., 60 -> C4). Alternatively, use a lookup table or existing utility since Pitchy does not directly give note names.
+	•	Display Note to User: Show the note name prominently on the screen. This can be a React state that updates every time a new stable pitch is detected. The UI could be a text element (e.g., “Detected: C♯4”). Update it continuously as the user plays different notes.
+	•	Smoothing & Debouncing: Implement logic to avoid flicker and error in display:
+	•	Only update the displayed note when a new stable pitch is detected. If the user holds a note, the detection might run 60 times/sec with the same note – we should not repeatedly trigger new events for the same continuous note. Solution: keep track of the last detected note. Only change the display when the note changes or when clarity drops (note off). Possibly require the same note frequency to be reported for e.g. 2 consecutive frames before considering it “confirmed.” This avoids momentary mis-pitches.
+	•	When no clear pitch is present (clarity below threshold or silence), you might blank the display or show “–”. To avoid rapid blinking, add a slight delay before clearing the note (e.g., require 200ms of no pitch before clearing) so that short pauses don’t erase the note immediately.
+	•	Noise Handling: Use a high-pass filter node on the input to cut very low frequencies (rumble) that aren’t musical. Many pianos’ lowest note is ~27.5 Hz (A0), but anything below that could be noise (e.g., foot tapping). A filter at ~20 Hz could help. Additionally, consider limiting the frequency search range to piano (27 Hz–4200 Hz) if the library allows (Pitchy inherently covers full range of human hearing, so it’s fine). The clarity threshold will reject non-tonal noise.
+	•	Volume Threshold: Optionally, ignore input when the signal volume (RMS) is extremely low (could use Tone.js Meter or AnalyserNode volume). This prevents picking up distant background sounds.
+
+Non-Functional Requirements:
+	•	Latency should be low: the note should appear within ~100ms of being played. (User perception: nearly instantaneous feedback.) Tuning the bufferSize can help – smaller buffers yield lower latency but might hurt low-note detection accuracy. Test and choose the best buffer size.
+	•	The system should run smoothly at at least 30 detections per second without frame drops on an average iPad. Use efficient coding (e.g., reuse Float32Array for analysis to avoid garbage collection, possibly run heavy math in a Web Worker/Worklet if needed).
+	•	UI updates should be throttled if needed to maintain React render performance (but a simple text update at ~60Hz is generally fine).
+
+Acceptance Criteria:
+	•	When the app is given microphone access and a single piano key is struck, the correct note name (with accidentals and octave) is displayed on screen within a fraction of a second.
+	•	The displayed note remains stable (does not jump erratically) while the piano sound is sustained.
+	•	In silence or when playing non-piano noises (claps, speaking), the app does not falsely display random notes (noise is ignored due to clarity threshold).
+	•	Quick taps on the piano (very short notes) are detected, but brief noise bursts are not misinterpreted as valid notes.
+	•	Tested on iPhone/iPad: the detection works in Safari (with user gesture to start) and Chrome, with no crashes or excessive lag. Microphone permission handling and errors (e.g., no mic) are gracefully handled (display a message if mic is unavailable).
+
+Engineering Notes: This foundational feature will be built first. We will create a reusable AudioService module (or React hook) that manages the AudioContext and PitchDetector. It will expose the current detected note or an event emitter for note-on/note-off. This separation will help in the next feature, where we need to integrate with the exercise logic. Also, write unit tests for the frequency->note conversion to ensure A# vs Bb naming is consistent (could default to sharps, since beginner exercises likely stick to naturals/sharps).
+
+2. Exercise Note Sequence Matching & Feedback
+
+Objective: Leverage the pitch detection to guide the user through a predefined sequence of notes (an exercise). The app will compare the user’s played note to the target note in the sequence, give immediate feedback (correct/incorrect), and advance the exercise accordingly. Visual feedback will be provided by highlighting the sheet music (rendered with VexFlow) and indicating errors.
+
+User Story: “As a learner, I want the app to tell me if I played the right note in the exercise, and move on to the next note only when I get it right, so I can learn the piece step by step.”
+
+Preconditions: The exercise’s sheet music is already displayed via VexFlow, and we have an array/structure of the target notes in order (e.g., [{pitch: "C4", duration: quarter}, {pitch: "E4", duration: quarter}, …]). Initially, the first note is the “current target.”
+
+Functional Requirements:
+	•	Current Note Highlight: Visually indicate the current target note on the musical notation (e.g., by coloring it or adding an arrow). VexFlow can be instructed to mark a notehead or we can overlay a highlight SVG/element on the canvas. This focus should move as the student progresses.
+	•	Matching Logic: Whenever a new note is detected by the system (from feature 1’s output), if a target note is active:
+	•	Compare the detected note’s pitch (e.g., “E4”) to the current target note’s pitch. The comparison should be done in a forgiving way regarding enharmonic equivalents if relevant (e.g., treat C#4 and Db4 as correct if the target is one or the other as written – though exercises likely won’t include tricky enharmonics for beginners). Essentially compare by MIDI number or normalized pitch class+octave.
+	•	If the note matches the target: mark it as correct. Provide positive feedback – e.g., highlight that note on the staff in green, or briefly flash a ✅ mark. Advance the current note pointer to the next note in the sequence. Then update the highlight to the next target note on the sheet.
+	•	If the note is incorrect (the user played the wrong note): provide immediate feedback for the mistake. This could be a gentle sound (error beep) and visual cue – e.g., flash the note in red or shake it. Do not advance the sequence. Encourage the user to try again. (Optionally, display the name of the note they played vs the expected, or just indicate it’s wrong.)
+	•	Continuous Listening: The system should continue listening as the user plays each note. After a correct note, it should listen for the next one. If the user plays extra notes (not following the exercise), those should be ignored or handled as mistakes if a target is active. Essentially, always expect the current target, and filter out anything else as either wrong attempts or irrelevant.
+	•	Note On/Off Handling: Use the note onset detection (from feature 1’s logic) to trigger the match only once per note press. For example, if the user holds a note that is correct, it should count only once and then move on (we shouldn’t repeatedly count it as multiple correct hits). If they hold a wrong note, it should mark wrong once and not spam the UI. Achieve this by detecting note changes: e.g., when a new pitch appears that is different from the last pitch, consider that a new attempt. You might implement a simple state machine: “waiting for note -> note detected -> lock until note is released -> then evaluate next note.” In practice, because piano notes decay, “note release” can be inferred when clarity drops to zero or a new note is played.
+	•	End of Sequence: When the user reaches the last note: if they play it correctly, mark it and then indicate the exercise is complete. Possibly play a congratulatory sound or message (“Exercise Complete!”). The system can then stop listening or wait for user to restart.
+
+Visual Feedback Design:
+	•	Current target note highlight: e.g., a yellow outline around the notehead on the sheet.
+	•	Correct note: perhaps the notehead turns green briefly, or a checkmark appears next to it. Then automatically highlight the next note.
+	•	Incorrect note: flash the staff or notehead in red. Possibly keep the highlight on the same note (since it’s still the target). If using sound, a subtle “ding” for correct and a “buzz” for wrong could be added (though that requires generating sound; Tone.js could be used for a short feedback sound effect).
+
+Integration with VexFlow: We will need a way to manipulate the VexFlow rendering (which likely is drawn on a canvas/SVG) to change note colors. VexFlow allows setting styles on notes; we might re-render the measure with a different color for the notehead. Alternatively, if the notation is static, overlay elements or use VexFlow’s built-in API to highlight current notes (for example, by adding a classes or using the Note.setStyle({ fillStyle: color }) on the target note). We should plan an abstraction so that given an index in the sequence, we can highlight the corresponding note on the staff. This might require mapping our exercise data to VexFlow tick positions or similar. Since the sequence is static and known, we can store references to the rendered note objects for quick styling updates.
+
+Non-Functional Requirements:
+	•	The note-matching feedback should feel instantaneous. When the user plays the correct note, the highlight should jump to the next note almost immediately (no noticeable lag). This real-time feedback is crucial for a good UX.
+	•	The system should tolerate minor mis-tunings: If the piano is slightly off-tune (which can happen with acoustic pianos), the frequency might not exactly match standard A440 tuning. Our detection in feature 1 already essentially picks nearest note; ensure this doesn’t cause a correct play to be marked wrong. (Maybe allow a small cushion in frequency matching, which the rounding to nearest semitone inherently does.)
+	•	Robustness: If the user plays two notes at once accidentally (e.g. hits a neighboring key), our pitch detection (being monophonic) might produce a confusing result (maybe an average or one of the tones). For now, we assume the user attempts one note at a time (and perhaps instruct them so). In the future we might handle it, but it’s out of scope to parse chords. If it happens, we may just not register a clear pitch (low clarity due to polyphonic input) – which is fine.
+	•	The app state (current note in exercise) should be maintained such that if the mic stops or the user pauses, we remember which note they were on. Perhaps we provide a “restart exercise” button to reset to first note if needed.
+
+Acceptance Criteria:
+	•	The user can successfully go through an entire note sequence: playing each note in order and getting confirmation. The app only progresses when the correct note is played. If a wrong note is played, the app indicates the error and does not progress, allowing the user to try again.
+	•	Visual highlights update correctly: always pointing at the note the user should play next. When the sequence is finished, the final note is marked correct and the user is clearly informed that they are done (e.g., a message or all notes turning green).
+	•	No duplicate counting of a single sustained note (e.g., holding a key down doesn’t produce multiple “correct” messages). No stuck states: e.g., if a user plays the wrong note and never returns to silence (unlikely with piano since note decays), the system should eventually recover (e.g., once the sound decays, it’s ready for a new attempt).
+	•	The matching is accurate: if the user plays the exact expected note, it’s recognized >99% of the time. (Only extremely short or extremely soft attempts might fail detection – which is acceptable if rare.)
+	•	Performance: even with continuous playing, the React UI and canvas updates remain smooth (60fps typical). The pitch detection and matching logic should not introduce noticeable lag on an iPad.
+
+Engineering Implementation Notes:
+	•	We will extend the AudioService from feature 1 to have an event emitter for “note-on events” that include the detected note name and a timestamp. The exercise logic will listen to these events. By using an event-driven approach, we ensure that the pitch detection loop remains decoupled from UI updates (important for maintainability).
+	•	Use a simple state machine or flags: e.g., currentNoteIndex, awaitingNote = true/false to manage when to capture the next note. One approach: only accept a new note once the previous note was either correct or “cleared”. We might require a short silence or different note before another attempt to avoid spamming multiple detections of the same wrong note. For example, if wrong note played, we can ignore further detections of that same pitch for a second. This prevents a long wrong note from repeatedly flashing red.
+	•	Plan for scalability: If later we allow any sequence (not just single notes but maybe intervals), our system should easily generalize. But right now, we assume sequential single notes which simplifies the logic.
+	•	Logging: For debugging, log each detected note and whether it was considered correct/incorrect with timestamps. This will help tune the clarity threshold or detection parameters if we notice missed or false triggers.
+	•	Edge case: if the user skips a note (plays something different), the app should treat it as wrong. If they then play the correct note, it should still accept it. Essentially unlimited attempts until correct. We should ensure an earlier wrong attempt doesn’t block the correct one from registering (by resetting an “attempt lock” when a new pitch comes in).

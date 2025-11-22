@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import './App.css'
 import MusicStaff from './components/MusicStaff'
+import { RecordingLight } from './components/RecordingLight'
+import { useNoteDetection } from './hooks/useNoteDetection'
+import { useExerciseEngine } from './hooks/useExerciseEngine'
 
 import { levels } from './data/levels'
 import { generateExercise } from './utils/generator'
@@ -21,23 +24,12 @@ function App() {
   const [progressCount, setProgressCount] = useState(0)
   const [showLevelUp, setShowLevelUp] = useState(false)
 
-  const progressValue = Math.min((progressCount / 5) * 100, 100)
+  // Audio & Game Engine
+  // Note detection is always on for display
+  const { note: detectedNote } = useNoteDetection(true)
+  const [isRecording, setIsRecording] = useState(false)
 
-  const handleNextExercise = () => {
-    const nextExercise = generateExercise(levels[currentLevelIndex], `ex-${Date.now()}`)
-    setCurrentExercise(nextExercise)
-    setExerciseCount(prev => prev + 1)
-  }
-
-  const handleLevelSelect = (index: number) => {
-    setCurrentLevelIndex(index)
-    const nextExercise = generateExercise(levels[index], `ex-${Date.now()}`)
-    setCurrentExercise(nextExercise)
-    setExerciseCount(1)
-    setProgressCount(0) // Reset progress on manual level switch
-  }
-
-  const handleDropTheBeat = () => {
+  const handleExerciseComplete = () => {
     // 1. Update Score & Progress
     setScore(prev => prev + 500)
     const newProgress = progressCount + 1
@@ -67,6 +59,33 @@ function App() {
     }
   }
 
+  const { noteStatuses, feedback } = useExerciseEngine({
+    exercise: currentExercise,
+    detectedNote,
+    isRecording,
+    onComplete: handleExerciseComplete
+  })
+
+  const progressValue = Math.min((progressCount / 5) * 100, 100)
+
+  const handleNextExercise = () => {
+    const nextExercise = generateExercise(levels[currentLevelIndex], `ex-${Date.now()}`)
+    setCurrentExercise(nextExercise)
+    setExerciseCount(prev => prev + 1)
+  }
+
+  const handleLevelSelect = (index: number) => {
+    setCurrentLevelIndex(index)
+    const nextExercise = generateExercise(levels[index], `ex-${Date.now()}`)
+    setCurrentExercise(nextExercise)
+    setExerciseCount(1)
+    setProgressCount(0) // Reset progress on manual level switch
+  }
+
+  const handleDropTheBeat = () => {
+    setIsRecording(!isRecording)
+  }
+
   return (
     <div className="app-shell">
       <div className="portrait-lock">
@@ -87,6 +106,10 @@ function App() {
         <header className="hud">
           {/* Score (Left) */}
           <div className="hud-score">
+            <RecordingLight isRecording={isRecording} />
+            <div className="hud-note-display">
+              {detectedNote ? detectedNote.note : '--'}
+            </div>
             <img src={scoreLabelImage} alt="Street Score" className="score-label-img" />
             <span className="score-value">{score}</span>
           </div>
@@ -108,7 +131,9 @@ function App() {
 
         <section className="board">
           <div className="staff-panel">
-            <MusicStaff exercise={currentExercise} />
+            <MusicStaff exercise={currentExercise} noteStatuses={noteStatuses} />
+            {feedback === 'error' && <div style={{ position: 'absolute', top: 0, right: 0, color: 'red', fontSize: '2em' }}>❌</div>}
+            {feedback === 'correct' && <div style={{ position: 'absolute', top: 0, right: 0, color: 'green', fontSize: '2em' }}>✅</div>}
           </div>
 
           <div className="board-footer">
@@ -141,9 +166,13 @@ function App() {
               </div>
             </div>
 
-            {/* Right: Drop Button */}
-            <button className="image-button drop-button" onClick={handleDropTheBeat}>
-              <img src={dropButtonImage} alt="Drop the Beat" />
+            {/* Right: Drop Button (Toggle Listening) */}
+            <button
+              className="image-button drop-button"
+              onClick={handleDropTheBeat}
+              style={{ filter: isRecording ? 'hue-rotate(90deg)' : 'none' }}
+            >
+              <img src={dropButtonImage} alt={isRecording ? "Stop Recording" : "Start Recording"} />
             </button>
           </div>
         </section>

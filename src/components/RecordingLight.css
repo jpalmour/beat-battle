@@ -1,0 +1,52 @@
+.recording-light {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+}
+
+.light-bulb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #333;
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5), 1px 1px 2px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    border: 2px solid #222;
+}
+
+.recording-light.on .light-bulb {
+    background: radial-gradient(circle at 30% 30%, #ff6b6b, #ff0000);
+    box-shadow:
+        0 0 10px #ff0000,
+        0 0 20px #ff0000,
+        inset -2px -2px 5px rgba(0, 0, 0, 0.2);
+    border-color: #cc0000;
+    animation: pulse-glow 2s infinite;
+}
+
+.rec-text {
+    font-family: 'Bangers', cursive;
+    font-size: 1.2rem;
+    color: #444;
+    transition: color 0.3s;
+}
+
+.recording-light.on .rec-text {
+    color: #ff4444;
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+    }
+
+    50% {
+        box-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000;
+    }
+
+    100% {
+        box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+    }
+}

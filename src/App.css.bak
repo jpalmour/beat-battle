@@ -373,25 +373,3 @@
         display: none !important;
     }
 }
-/* HUD Note Display */
-.hud-note-display {
-  margin-left: 15px;
-  font-family: 'Bangers', cursive;
-  font-size: 2.5rem;
-  color: #00ffff; /* Cyan neon */
-  text-shadow: 
-    0 0 5px #00ffff,
-    0 0 10px #00ffff;
-  min-width: 60px;
-  text-align: center;
-  animation: neon-flicker 3s infinite alternate;
-}
-
-@keyframes neon-flicker {
-  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-    opacity: 1;
-  }
-  20%, 24%, 55% {
-    opacity: 0.8;
-  }
-}

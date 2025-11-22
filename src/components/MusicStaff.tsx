@@ -2,11 +2,14 @@ import { useEffect, useRef } from 'react'
 import { Renderer, Stave, StaveNote, Formatter, Annotation, Voice, Accidental, BarlineType } from 'vexflow'
 import type { Exercise } from '../types/music'
 
+import type { NoteStatus } from '../hooks/useExerciseEngine'
+
 interface MusicStaffProps {
     exercise: Exercise
+    noteStatuses?: NoteStatus[]
 }
 
-const MusicStaff = ({ exercise }: MusicStaffProps) => {
+const MusicStaff = ({ exercise, noteStatuses = [] }: MusicStaffProps) => {
     const containerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -16,21 +19,21 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
         const resizeObserver = new ResizeObserver(entries => {
             for (const entry of entries) {
                 if (entry.contentRect) {
-                    renderStaff(container, exercise)
+                    renderStaff(container, exercise, noteStatuses)
                 }
             }
         })
 
         resizeObserver.observe(container)
 
-        renderStaff(container, exercise)
+        renderStaff(container, exercise, noteStatuses)
 
         return () => {
             resizeObserver.disconnect()
         }
-    }, [exercise])
+    }, [exercise, noteStatuses])
 
-    const renderStaff = (container: HTMLDivElement, exercise: Exercise) => {
+    const renderStaff = (container: HTMLDivElement, exercise: Exercise, statuses: NoteStatus[]) => {
         container.innerHTML = ''
 
         // Logical dimensions for the VexFlow rendering
@@ -62,6 +65,8 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
         let currentX = padding
         const y = 1 // Maximized vertical positioning
 
+        let globalNoteIndex = 0;
+
         exercise.measures.forEach((measure, index) => {
             const stave = new Stave(currentX, y, measureWidth)
 
@@ -83,8 +88,18 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
                     clef: exercise.clef
                 })
 
+                // Determine color based on status
+                const status = statuses[globalNoteIndex] || 'pending';
+                let color = '#f7f7f7'; // Default white
+
+                if (status === 'current') color = '#ffeb3b'; // Yellow for current target
+                else if (status === 'correct') color = '#4caf50'; // Green for correct
+                else if (status === 'error') color = '#f44336'; // Red for error
+
                 // Style note heads and stems
-                staveNote.setStyle({ fillStyle: '#f7f7f7', strokeStyle: '#f7f7f7' })
+                staveNote.setStyle({ fillStyle: color, strokeStyle: color })
+
+                globalNoteIndex++;
 
                 // Add accidentals if needed
                 noteData.keys.forEach((key, index) => {
