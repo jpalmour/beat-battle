@@ -54,7 +54,25 @@ function App() {
       // Minimum supported "modern" phone length (iPhone X/11 Pro is 812px)
       const MIN_SUPPORTED_WIDTH = 812;
 
-      if (maxDim < MIN_SUPPORTED_WIDTH) {
+      // Check device capability
+      let isCapable = maxDim >= MIN_SUPPORTED_WIDTH;
+
+      // On touch devices (phones/tablets), use screen dimensions as fallback
+      // This handles the case where browser bars reduce the viewport height in portrait
+      // but the device is actually large enough.
+      // We don't do this on desktop so that resizing the window can still simulate "Not Supported".
+      const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+      if (isTouchDevice) {
+        const maxScreenDim = Math.max(
+          window.screen.width,
+          window.screen.height,
+        );
+        if (maxScreenDim >= MIN_SUPPORTED_WIDTH) {
+          isCapable = true;
+        }
+      }
+
+      if (!isCapable) {
         setLayoutState("unsupported");
       } else if (!isLandscape) {
         setLayoutState("rotate");
