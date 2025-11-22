@@ -24,6 +24,20 @@ The app supports 4 distinct layout states:
 - **Music Rendering**: VexFlow
 - **Styling**: Vanilla CSS (Custom Design System)
 
+## Testing
+
+### Unit Tests
+Unit tests are written using **Vitest**. They run automatically on pre-commit to ensure code quality.
+```bash
+npm run test
+```
+
+### End-to-End (E2E) Tests
+E2E tests are written using **Playwright**. They run in CI on every Pull Request to `main`.
+```bash
+npx playwright test
+```
+
 ## Getting Started
 
 1.  **Install dependencies**:

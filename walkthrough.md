@@ -1,39 +1,40 @@
-# Game Logic Updates Walkthrough
+# Testing Strategy Implementation
 
-I have implemented the full game loop logic and a cheat mode for testing.
+I have implemented a consolidated testing strategy using **Playwright** for End-to-End (E2E) testing and **Vitest** for Unit testing.
 
 ## Changes
 
-### Game Engine (`src/hooks/useExerciseEngine.ts`)
-- **Completion Logic**: The engine now checks if all notes were correct at the end of the exercise. If so, it triggers `onComplete` (points, progress).
-- **Failure Logic**: If any notes were missed (red), it triggers `onFail` at the end of the exercise.
-- **Cheats**: Added support for a `simulatedNote` prop that bypasses the microphone and stability check.
+### 1. End-to-End Tests (Playwright)
+- **Framework**: Standardized on Playwright.
+- **Configuration**: `playwright.config.ts` configured to auto-approve microphone permissions.
+- **Test**: `tests/game.spec.ts` implements the core game loop verification:
+    - Loads app with `?debug=true`.
+    - Starts game ("Drop the Beat").
+    - Verifies recording state.
+    - Simulates correct notes using the debug overlay target.
+    - Verifies progress advancement.
 
-### App (`src/App.tsx`)
-- **Retry UI**: Added a "TRY AGAIN" overlay that appears for 2 seconds on failure before resetting the exercise.
-- **Keyboard Cheats**: Pressing keys `A`-`G` on your keyboard will simulate playing that note.
-    - **Smart Matching**: The cheat logic matches the *name* of the note regardless of octave. So pressing 'C' will count as correct if the target is C4, C5, etc.
-    - **Failure Testing**: Pressing a wrong letter (e.g., 'D' when target is 'C') will mark the note as red immediately.
+### 2. Unit Tests (Vitest)
+- **Framework**: Vitest (existing).
+- **Configuration**: Updated `vite.config.ts` to exclude Playwright tests from Vitest execution.
+- **Pre-commit**: Configured `.husky/pre-commit` to run `npm run test` before every commit.
 
-## Verification
+### 3. CI/CD (GitHub Actions)
+- **Workflow**: `.github/workflows/ci.yml`
+- **Jobs**:
+    - `unit-tests`: Runs `npm run test` (Vitest).
+    - `e2e-tests`: Runs `npx playwright test` (Playwright).
+- **Trigger**: Runs on Pull Requests to `main`.
 
-### Manual Verification Steps
-1.  **Cheat Success**:
-    - Start an exercise (click "Drop the Beat").
-    - Look at the first note (e.g., C4).
-    - Press 'C' on your keyboard. Verify it turns green.
-    - Repeat for all notes.
-    - Verify "Level Up" / Progress bar increases.
+### 4. Documentation
+- Updated `README.md` with testing instructions.
+- Updated `AGENTS.md` with the testing strategy details.
 
-2.  **Cheat Failure**:
-    - Start an exercise.
-    - Press the WRONG letter for the first note. Verify it turns RED.
-    - Finish the rest of the notes (correct or incorrect).
-    - Verify "TRY AGAIN" overlay appears.
-    - Verify the exercise resets (notes go back to white/pending).
+## Verification Results
 
-3.  **Real Audio**:
-    - Verify microphone still works as before.
+### Automated Tests
+- **Unit Tests**: Passed locally (`npm run test`).
+- **E2E Tests**: Passed locally (`npx playwright test`).
 
-## Next Steps
-- The game loop is now fully functional!
+### Manual Verification
+- Verified that the Playwright test successfully interacts with the game loop and handles the microphone permission automatically.

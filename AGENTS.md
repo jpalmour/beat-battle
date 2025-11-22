@@ -48,6 +48,25 @@ When making UI changes:
 3.  **Fix** any obvious alignment or spacing issues automatically.
 4.  **Present** the results to the user if uncertain.
 
+## Testing Strategy
+
+### Unit Tests
+- **Framework**: Vitest
+- **Execution**: Runs on pre-commit hook (`.husky/pre-commit`).
+- **Command**: `npm run test`
+
+### End-to-End (E2E) Tests
+- **Framework**: Playwright
+- **Execution**: Runs in GitHub Actions on PRs to `main`.
+- **Command**: `npx playwright test`
+- **Configuration**: `playwright.config.ts` (includes auto-approved microphone permissions).
+
+## CI/CD
+- **Workflow**: `.github/workflows/ci.yml`
+- **Jobs**:
+    - `unit-tests`: Runs Vitest.
+    - `e2e-tests`: Runs Playwright.
+
 ## Tech Stack
 
 - **Core**: React 19, TypeScript, Vite

@@ -134,3 +134,7 @@ Thumbs.db
 
 # Agent
 .gemini
+
+# Playwright
+playwright-report/
+test-results/
