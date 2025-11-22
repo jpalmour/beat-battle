@@ -41,6 +41,18 @@ The app supports 4 distinct layout states:
     npm run build
     ```
 
+## Testing
+
+- **Run unit tests**:
+  ```bash
+  npm run test:unit
+  ```
+
+- **Run unit tests with coverage output (text, HTML, and lcov in `coverage/`)**:
+  ```bash
+  npm run test:unit:coverage
+  ```
+
 ## Project Structure
 
 - `src/components`: UI components (MusicStaff, etc.)
