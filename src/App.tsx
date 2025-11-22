@@ -8,6 +8,7 @@ import { useExerciseEngine } from './hooks/useExerciseEngine'
 import { levels } from './data/levels'
 import { generateExercise } from './utils/generator'
 import type { Exercise } from './types/music'
+import type { DetectedNote } from './utils/noteDetection'
 
 import titleImage from './assets/TitleText-ZorasBeatBattle-Bordered-Transparent.png'
 import scoreLabelImage from './assets/street-score-transparent.png'
@@ -23,6 +24,7 @@ function App() {
   const [score, setScore] = useState(0)
   const [progressCount, setProgressCount] = useState(0)
   const [showLevelUp, setShowLevelUp] = useState(false)
+  const [showTryAgain, setShowTryAgain] = useState(false)
 
   // Audio & Game Engine
   // Note detection starts on first interaction
@@ -30,10 +32,31 @@ function App() {
   const { note: detectedNote, error: audioError } = useNoteDetection(audioEnabled)
   const [isRecording, setIsRecording] = useState(false)
 
+  // Cheats
+  const [simulatedNote, setSimulatedNote] = useState<{ note: DetectedNote, id: number } | null>(null)
+
   // Unlock audio on first interaction
-  const handleInteraction = () => {
+  const handleInteraction = (e: React.MouseEvent | React.KeyboardEvent) => {
     if (!audioEnabled) {
       setAudioEnabled(true)
+    }
+
+    // Cheat Listener
+    if (e.type === 'keydown') {
+      const kbEvent = e as React.KeyboardEvent;
+      if (kbEvent.repeat) return; // Ignore hold-down repeats
+
+      const key = kbEvent.key.toUpperCase();
+      if (['A', 'B', 'C', 'D', 'E', 'F', 'G'].includes(key)) {
+        // Simulate a note event
+        // We use a generic octave (4) because the engine will ignore it for cheats
+        setSimulatedNote({
+          note: { note: `${key}4`, frequency: 440, clarity: 1 },
+          id: Date.now()
+        });
+        // Clear it immediately after render cycle so it doesn't stick
+        setTimeout(() => setSimulatedNote(null), 50);
+      }
     }
   }
 
@@ -67,11 +90,21 @@ function App() {
     }
   }
 
-  const { noteStatuses, feedback, debug } = useExerciseEngine({
+  const handleExerciseFail = () => {
+    setShowTryAgain(true);
+    setTimeout(() => {
+      setShowTryAgain(false);
+      resetEngine();
+    }, 2000);
+  }
+
+  const { noteStatuses, feedback, reset: resetEngine } = useExerciseEngine({
     exercise: currentExercise,
     detectedNote,
+    simulatedNote,
     isRecording,
-    onComplete: handleExerciseComplete
+    onComplete: handleExerciseComplete,
+    onFail: handleExerciseFail
   })
 
   // Check for debug mode
@@ -111,6 +144,12 @@ function App() {
         <div className="celebration-overlay">
           <h1 className="level-up-text">LEVEL UP!</h1>
           <div className="confetti">🎉 🎹 🚀</div>
+        </div>
+      )}
+
+      {showTryAgain && (
+        <div className="celebration-overlay" style={{ background: 'rgba(50, 0, 0, 0.8)' }}>
+          <h1 className="level-up-text" style={{ color: '#ff4444', textShadow: '0 0 10px red' }}>TRY AGAIN</h1>
         </div>
       )}
 

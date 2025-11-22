@@ -99,6 +99,10 @@ const MusicStaff = ({ exercise, noteStatuses = [] }: MusicStaffProps) => {
                 // Style note heads and stems
                 staveNote.setStyle({ fillStyle: color, strokeStyle: color })
 
+                // Explicitly style ledger lines (for Middle C etc)
+                // VexFlow requires this to be set separately
+                staveNote.setLedgerLineStyle({ strokeStyle: color, lineWidth: 2 });
+
                 globalNoteIndex++;
 
                 // Add accidentals if needed
