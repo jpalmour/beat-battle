@@ -82,7 +82,8 @@
 
 .battle-stage {
     position: relative;
-    max-width: 1200px;
+    max-width: 1024px;
+    /* Constrain width to prevent corner drift and extreme aspect ratios */
     margin: 0 auto;
     padding: 12px 32px;
     display: flex;
