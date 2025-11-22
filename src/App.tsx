@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import MusicStaff from './components/MusicStaff'
-import LevelSelector from './components/LevelSelector'
+
 import { levels } from './data/levels'
 import { generateExercise } from './utils/generator'
 import type { Exercise } from './types/music'
@@ -85,40 +85,19 @@ function App() {
       )}
       <main className="battle-stage">
         <header className="hud">
-          <div className="hud-left desktop-only">
-            <span className="spray-label">Levels</span>
-            <LevelSelector
-              levels={levels}
-              currentLevelIndex={currentLevelIndex}
-              onSelectLevel={handleLevelSelect}
-            />
-          </div>
-
-          {/* Mobile Landscape: Score (Left) */}
-          <div className="hud-score-mobile mobile-landscape-only">
+          {/* Score (Left) */}
+          <div className="hud-score">
             <img src={scoreLabelImage} alt="Street Score" className="score-label-img" />
             <span className="score-value">{score}</span>
           </div>
 
+          {/* Title (Center) */}
           <div className="hud-title">
             <img src={titleImage} alt="Zora's Beat Battle" className="title-image" />
-            <h1 className="headline desktop-only">Block {currentLevelIndex + 1}</h1>
           </div>
 
-          {/* Mobile Landscape: Progress (Right) */}
-          <div className="hud-progress-mobile mobile-landscape-only">
-            <div className="progress-track">
-              <div className="progress-fill" style={{ width: `${progressValue}%` }}>
-                <span className="progress-text">{progressValue}%</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="score-card desktop-only">
-            <div className="score-header">
-              <img src={scoreLabelImage} alt="Street Score" className="score-label-img" />
-              <span className="score-value">{score}</span>
-            </div>
+          {/* Progress (Right) */}
+          <div className="hud-progress">
             <div className="progress-track">
               <div className="progress-fill" style={{ width: `${progressValue}%` }}>
                 <span className="progress-text">{progressValue}%</span>
@@ -128,41 +107,26 @@ function App() {
         </header>
 
         <section className="board">
-          <div className="board-header desktop-only">
-            <div className="header-left">
-              <div className="block-label">Beat Pattern</div>
-            </div>
-            <div className="level-name">
-              {levels[currentLevelIndex].name}
-            </div>
-            <div className="exercise-meta">
-              <span className="meta-chip">Level {currentLevelIndex + 1}</span>
-              <span className="meta-chip ghost">Exercise #{exerciseCount}</span>
-            </div>
-          </div>
-
           <div className="staff-panel">
             <MusicStaff exercise={currentExercise} />
           </div>
 
           <div className="board-footer">
-            <div className="user-plate desktop-only">
-              <div className="graffiti-tag">Zora Beats</div>
-              <div className="user-details">
-                <span>User: Zora</span>
-                <span>Combo: {score > 0 ? Math.floor(score / 500) : 0}x</span>
-              </div>
-            </div>
+            {/* Left: Back Button */}
+            <button className="image-button back-button" onClick={() => handleLevelSelect(Math.max(currentLevelIndex - 1, 0))}>
+              <img src={backButtonImage} alt="Back" />
+            </button>
 
-            <div className="mobile-landscape-info mobile-landscape-only">
-              <div className="level-nav-container">
+            {/* Center: Level Nav & Info */}
+            <div className="level-info-container">
+              <div className="level-nav">
                 <button
                   className="nav-arrow"
                   onClick={() => handleLevelSelect((currentLevelIndex - 1 + levels.length) % levels.length)}
                 >
                   &lt;
                 </button>
-                <div className="level-name-small">{levels[currentLevelIndex].name}</div>
+                <div className="level-name-display">{levels[currentLevelIndex].name}</div>
                 <button
                   className="nav-arrow"
                   onClick={() => handleLevelSelect((currentLevelIndex + 1) % levels.length)}
@@ -170,22 +134,17 @@ function App() {
                   &gt;
                 </button>
               </div>
-              <div className="exercise-meta-small">
+              <div className="exercise-meta-display">
                 <span>Level {currentLevelIndex + 1}</span>
                 <span>•</span>
                 <span>Ex #{exerciseCount}</span>
               </div>
             </div>
 
-            <div className="controls">
-              <button className="image-button back-button" onClick={() => handleLevelSelect(Math.max(currentLevelIndex - 1, 0))}>
-                <img src={backButtonImage} alt="Back" />
-              </button>
-              {/* Removed redundant Next Track button */}
-              <button className="drop-button" onClick={handleDropTheBeat}>
-                <img src={dropButtonImage} alt="Drop the Beat" />
-              </button>
-            </div>
+            {/* Right: Drop Button */}
+            <button className="image-button drop-button" onClick={handleDropTheBeat}>
+              <img src={dropButtonImage} alt="Drop the Beat" />
+            </button>
           </div>
         </section>
       </main>
