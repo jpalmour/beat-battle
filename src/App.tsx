@@ -167,27 +167,31 @@ function App() {
 
       <main className="battle-stage">
         <header className="hud">
-          {/* Score (Left) */}
-          <div className="hud-score">
+          {/* Left: Recording & Note Display */}
+          <div className="hud-left">
             <RecordingLight isRecording={isRecording} />
             <div className="hud-note-display" style={{ fontSize: audioError ? '1rem' : '2.5rem', color: audioError ? 'red' : '#00ffff' }}>
               {audioError ? 'MIC ERROR' : (detectedNote ? detectedNote.note : '--')}
             </div>
-            <img src={scoreLabelImage} alt="Street Score" className="score-label-img" />
-            <span className="score-value">{score}</span>
           </div>
 
-          {/* Title (Center) */}
-          <div className="hud-title">
+          {/* Center: Title */}
+          <div className="hud-center">
             <img src={titleImage} alt="Zora's Beat Battle" className="title-image" />
           </div>
 
-          {/* Progress (Right) */}
-          <div className="hud-progress">
-            <div className="progress-track">
-              <div className="progress-fill" style={{ width: `${progressValue}%` }}>
-                <span className="progress-text">{progressValue}%</span>
+          {/* Right: Progress & Score */}
+          <div className="hud-right">
+            <div className="hud-progress">
+              <div className="progress-track">
+                <div className="progress-fill" style={{ width: `${progressValue}%` }}>
+                  <span className="progress-text">{progressValue}%</span>
+                </div>
               </div>
+            </div>
+            <div className="hud-score-stacked">
+              <img src={scoreLabelImage} alt="Street Score" className="score-label-img" />
+              <span className="score-value">{score}</span>
             </div>
           </div>
         </header>

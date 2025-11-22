@@ -6,6 +6,40 @@ This document is designed to help AI agents quickly understand and contribute to
 
 **Zora's Beat Battle** is a gamified sight-reading web application built with React and TypeScript. It uses VexFlow to render musical notation and provides an interactive, level-based experience for learning piano.
 
+
+## UI Layouts & Validation
+
+The application supports 3 distinct layout modes based on screen size and orientation. **ALL UI changes must be validated against these 3 layouts.**
+
+### 1. Standard Landscape (Desktop/Tablet)
+- **Trigger**: `orientation: landscape` AND `width > 920px`
+- **Description**: Full-size title, spacious padding, standard component sizes.
+- **Validation**: Ensure no overlap between HUD elements. Title should be centered.
+
+### 2. Compact Landscape (Phone)
+- **Trigger**: `orientation: landscape` AND `width <= 920px`
+- **Description**: 
+    - Title scaled down (0.8x) and positioned lower.
+    - Reduced padding and gaps.
+    - Smaller progress bar and score.
+    - Tighter footer elements.
+- **Validation**: 
+    - **Critical**: Ensure the title logo does NOT overlap with the "Rec/Note" group (left) or "Score/Progress" group (right).
+    - **Critical**: Ensure the "Street Score" remains centered under the progress bar.
+    - Verify at widths ~667px (iPhone SE) and ~850px.
+
+### 3. Portrait Lock
+- **Trigger**: `orientation: portrait` AND `width <= 768px`
+- **Description**: Displays a "Rotate Your Device" overlay. Game content is hidden.
+- **Validation**: Ensure the overlay covers the entire screen and the message is centered.
+
+### Validation Procedure
+When making UI changes:
+1.  **Analyze** the impact on all 3 layouts.
+2.  **Verify** visually (using browser tools or screenshots) that elements do not spill over or overlap in Compact Landscape mode.
+3.  **Fix** any obvious alignment or spacing issues automatically.
+4.  **Present** the results to the user if uncertain.
+
 ## Tech Stack
 
 - **Core**: React 19, TypeScript, Vite
