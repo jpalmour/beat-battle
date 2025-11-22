@@ -22,6 +22,7 @@ The app supports 4 distinct layout states:
 - **Framework**: React 19 + TypeScript
 - **Build Tool**: Vite
 - **Music Rendering**: VexFlow
+- **Audio Detection**: Pitchy (Microphone pitch detection)
 - **Styling**: Vanilla CSS (Custom Design System)
 
 ## Testing

@@ -71,6 +71,7 @@ When making UI changes:
 
 - **Core**: React 19, TypeScript, Vite
 - **Music Logic**: VexFlow (rendering), Custom generators (`src/utils/generator.ts`)
+- **Audio Detection**: Pitchy (Microphone pitch detection)
 - **Styling**: Vanilla CSS (`src/index.css`, `src/App.css`, `src/styles/theme.css`). **NO Tailwind CSS.**
 - **State Management**: React `useState` (Local state is sufficient for current complexity).
 
