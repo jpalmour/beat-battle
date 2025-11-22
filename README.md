@@ -6,8 +6,16 @@ A gamified sight-reading practice app designed to make learning piano fun and en
 
 - **Progressive Curriculum**: Starts with simple rhythms and expands to steps, skips, and chords across both Treble and Bass clefs.
 - **Interactive Gameplay**: "Drop the Beat" mechanic rewards progress with visual flair.
-- **Mobile-First Design**: Optimized for landscape usage on mobile devices and tablets.
+- **Responsive Design**: Optimized for landscape play on modern devices.
 - **Instant Feedback**: Visual progress tracking and level completion celebrations.
+
+## Layout Support
+
+The app supports 4 distinct layout states:
+1.  **Standard Landscape**: Desktop & Tablet (>920px width).
+2.  **Compact Landscape**: Modern Phones (812px - 920px width).
+3.  **Rotate Required**: Portrait mode on supported devices.
+4.  **Not Supported**: Legacy devices smaller than iPhone X (max dimension < 812px).
 
 ## Tech Stack
 

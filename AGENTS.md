@@ -11,27 +11,35 @@ This document is designed to help AI agents quickly understand and contribute to
 
 The application supports 3 distinct layout modes based on screen size and orientation. **ALL UI changes must be validated against these 3 layouts.**
 
-### 1. Standard Landscape (Desktop/Tablet)
-- **Trigger**: `orientation: landscape` AND `width > 920px`
-- **Description**: Full-size title, spacious padding, standard component sizes.
-- **Validation**: Ensure no overlap between HUD elements. Title should be centered.
+## UI Layouts & Validation
 
-### 2. Compact Landscape (Phone)
-- **Trigger**: `orientation: landscape` AND `width <= 920px`
+The application implements a strict **4-State Layout System** to ensure quality across devices.
+
+### 1. Not Supported
+- **Condition**: `max(width, height) < 812px`
+- **Description**: Device is too small (e.g., older phones). Displays "Device Not Supported" overlay.
+- **Validation**: Test with window size ~600x400.
+
+### 2. Rotate Required
+- **Condition**: `max(width, height) >= 812px` AND `orientation: portrait`
+- **Description**: Device is capable but in wrong orientation. Displays "Rotate Your Device" overlay.
+- **Validation**: Test with window size ~400x850.
+
+### 3. Compact Landscape (Phone)
+- **Condition**: `orientation: landscape` AND `width <= 920px`
 - **Description**: 
     - Title scaled down (0.8x) and positioned lower.
     - Reduced padding and gaps.
     - Smaller progress bar and score.
-    - Tighter footer elements.
 - **Validation**: 
     - **Critical**: Ensure the title logo does NOT overlap with the "Rec/Note" group (left) or "Score/Progress" group (right).
     - **Critical**: Ensure the "Street Score" remains centered under the progress bar.
-    - Verify at widths ~667px (iPhone SE) and ~850px.
+    - Verify at widths ~812px (iPhone X) and ~850px.
 
-### 3. Portrait Lock
-- **Trigger**: `orientation: portrait` AND `width <= 768px`
-- **Description**: Displays a "Rotate Your Device" overlay. Game content is hidden.
-- **Validation**: Ensure the overlay covers the entire screen and the message is centered.
+### 4. Standard Landscape (Desktop/Tablet)
+- **Condition**: `orientation: landscape` AND `width > 920px`
+- **Description**: Full-size title, spacious padding, standard component sizes.
+- **Validation**: Ensure no overlap between HUD elements. Title should be centered.
 
 ### Validation Procedure
 When making UI changes:
