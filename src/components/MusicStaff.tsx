@@ -16,35 +16,35 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
         const resizeObserver = new ResizeObserver(entries => {
             for (const entry of entries) {
                 if (entry.contentRect) {
-                    renderStaff(container, exercise, entry.contentRect.width, entry.contentRect.height)
+                    renderStaff(container, exercise)
                 }
             }
         })
 
         resizeObserver.observe(container)
 
-        renderStaff(container, exercise, container.clientWidth, container.clientHeight)
+        renderStaff(container, exercise)
 
         return () => {
             resizeObserver.disconnect()
         }
     }, [exercise])
 
-    const renderStaff = (container: HTMLDivElement, exercise: Exercise, containerWidth: number, containerHeight: number) => {
+    const renderStaff = (container: HTMLDivElement, exercise: Exercise) => {
         container.innerHTML = ''
 
         // Logical dimensions for the VexFlow rendering
-        // We render to a fixed height coordinate system and let SVG scale it up
-        const LOGICAL_HEIGHT = 135
-        const aspectRatio = containerWidth / containerHeight
-        const logicalWidth = LOGICAL_HEIGHT * aspectRatio
+        // We use fixed logical dimensions to ensure the music always has standard proportionality.
+        // The SVG will scale to fit the container while preserving this aspect ratio.
+        const LOGICAL_HEIGHT = 150
+        const LOGICAL_WIDTH = 800 // Wide enough for 4 measures
 
         const padding = 10
-        const availableWidth = logicalWidth - padding * 2
+        const availableWidth = LOGICAL_WIDTH - padding * 2
         const measureWidth = availableWidth / 4
 
         const renderer = new Renderer(container, Renderer.Backends.SVG)
-        renderer.resize(logicalWidth, LOGICAL_HEIGHT)
+        renderer.resize(LOGICAL_WIDTH, LOGICAL_HEIGHT)
         const context = renderer.getContext()
         context.setFont('Bangers', 12)
         context.setFillStyle('#f7f7f7')
@@ -53,7 +53,7 @@ const MusicStaff = ({ exercise }: MusicStaffProps) => {
         // Set SVG to scale to container
         const svg = container.querySelector('svg')
         if (svg) {
-            svg.setAttribute('viewBox', `0 0 ${logicalWidth} ${LOGICAL_HEIGHT}`)
+            svg.setAttribute('viewBox', `0 0 ${LOGICAL_WIDTH} ${LOGICAL_HEIGHT}`)
             svg.setAttribute('width', '100%')
             svg.setAttribute('height', '100%')
             svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
