@@ -44,20 +44,28 @@ export function detectPitch(
     detector: PitchDetector<Float32Array>,
     sampleRate: number
 ): DetectedNote | null {
-    const input = new Float32Array(analyserNode.fftSize);
+    const input = new Float32Array(detector.inputLength);
     analyserNode.getFloatTimeDomainData(input);
 
-    const [frequency, clarity] = detector.findPitch(input, sampleRate);
+    // 1. RMS Volume Threshold
+    let sum = 0;
+    for (let i = 0; i < input.length; i++) {
+        sum += input[i] * input[i];
+    }
+    const rms = Math.sqrt(sum / input.length);
+    if (rms < 0.01) return null; // Silence threshold
+
+    const [pitch, clarity] = detector.findPitch(input, sampleRate);
 
     // Thresholds can be tuned. 
     // Clarity is 0-1. Higher is better.
-    if (clarity < 0.8 || frequency < 27.5 || frequency > 4186) {
+    if (clarity < 0.9 || pitch < 27.5 || pitch > 4186) {
         return null;
     }
 
     return {
-        note: getNoteFromFrequency(frequency),
-        frequency,
+        note: getNoteFromFrequency(pitch),
+        frequency: pitch,
         clarity
     };
 }
