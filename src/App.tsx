@@ -25,9 +25,17 @@ function App() {
   const [showLevelUp, setShowLevelUp] = useState(false)
 
   // Audio & Game Engine
-  // Note detection is always on for display
-  const { note: detectedNote } = useNoteDetection(true)
+  // Note detection starts on first interaction
+  const [audioEnabled, setAudioEnabled] = useState(false)
+  const { note: detectedNote, error: audioError } = useNoteDetection(audioEnabled)
   const [isRecording, setIsRecording] = useState(false)
+
+  // Unlock audio on first interaction
+  const handleInteraction = () => {
+    if (!audioEnabled) {
+      setAudioEnabled(true)
+    }
+  }
 
   const handleExerciseComplete = () => {
     // 1. Update Score & Progress
@@ -87,7 +95,7 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" onClick={handleInteraction} onKeyDown={handleInteraction}>
       <div className="portrait-lock">
         <div className="lock-content">
           <span className="rotate-icon">↻</span>
@@ -107,8 +115,8 @@ function App() {
           {/* Score (Left) */}
           <div className="hud-score">
             <RecordingLight isRecording={isRecording} />
-            <div className="hud-note-display">
-              {detectedNote ? detectedNote.note : '--'}
+            <div className="hud-note-display" style={{ fontSize: audioError ? '1rem' : '2.5rem', color: audioError ? 'red' : '#00ffff' }}>
+              {audioError ? 'MIC ERROR' : (detectedNote ? detectedNote.note : '--')}
             </div>
             <img src={scoreLabelImage} alt="Street Score" className="score-label-img" />
             <span className="score-value">{score}</span>
