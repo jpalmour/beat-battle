@@ -85,7 +85,7 @@ function App() {
       )}
       <main className="battle-stage">
         <header className="hud">
-          <div className="hud-left">
+          <div className="hud-left desktop-only">
             <span className="spray-label">Levels</span>
             <LevelSelector
               levels={levels}
@@ -94,12 +94,27 @@ function App() {
             />
           </div>
 
-          <div className="hud-title">
-            <img src={titleImage} alt="Zora's Beat Battle" className="title-image" />
-            <h1 className="headline">Block {currentLevelIndex + 1}</h1>
+          {/* Mobile Landscape: Score (Left) */}
+          <div className="hud-score-mobile mobile-landscape-only">
+            <img src={scoreLabelImage} alt="Street Score" className="score-label-img" />
+            <span className="score-value">{score}</span>
           </div>
 
-          <div className="score-card">
+          <div className="hud-title">
+            <img src={titleImage} alt="Zora's Beat Battle" className="title-image" />
+            <h1 className="headline desktop-only">Block {currentLevelIndex + 1}</h1>
+          </div>
+
+          {/* Mobile Landscape: Progress (Right) */}
+          <div className="hud-progress-mobile mobile-landscape-only">
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: `${progressValue}%` }}>
+                <span className="progress-text">{progressValue}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="score-card desktop-only">
             <div className="score-header">
               <img src={scoreLabelImage} alt="Street Score" className="score-label-img" />
               <span className="score-value">{score}</span>
