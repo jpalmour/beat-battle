@@ -30,7 +30,7 @@ export function getNoteFromFrequency(frequency: number): string {
     const midiNote = Math.round(noteNum) + 69;
 
     const noteIndex = midiNote % 12;
-    const octave = Math.floor(midiNote / 12) - 1;
+    const octave = Math.floor(midiNote / 12) - 2; // Adjusted for user's setup (was -1)
 
     const noteName = NOTE_STRINGS[noteIndex];
     return `${noteName}${octave}`;
@@ -53,7 +53,7 @@ export function detectPitch(
         sum += input[i] * input[i];
     }
     const rms = Math.sqrt(sum / input.length);
-    if (rms < 0.01) return null; // Silence threshold
+    if (rms < 0.005) return null; // Lowered silence threshold for better sensitivity
 
     const [pitch, clarity] = detector.findPitch(input, sampleRate);
 

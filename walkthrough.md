@@ -1,25 +1,19 @@
-# Logic & Ghost Note Fixes Walkthrough
+# Tuning & Sensitivity Walkthrough
 
-I have implemented a robust fix for the note matching logic and ghost notes.
+I have tuned the note detection to match your setup and improve sensitivity.
 
 ## Changes
 
-### Game Engine (`src/hooks/useExerciseEngine.ts`)
-- **Debounce Logic**: Replaced the flawed "re-render based" stability check with a proper `setTimeout` debounce. This ensures that `stableNote` is only set after the note has been held consistently for 100ms, solving the issue where the timer wasn't firing.
-- **State Cleanup**: Removed duplicate state declarations that were causing errors.
-
 ### Note Detection (`src/utils/noteDetection.ts`)
-- **Volume Gate**: Added an RMS (Root Mean Square) volume threshold. Notes below a certain volume (silence/background noise) are now ignored *before* pitch detection even happens. This is the most effective way to stop ghost notes.
-- **Clarity Threshold**: Increased clarity threshold to 0.9 for stricter detection.
+- **Octave Offset**: Adjusted the octave calculation by -1. This should align "C5" on your keyboard with "C5" in the game (previously it was showing C6).
+- **Sensitivity**: Lowered the volume threshold (RMS) from 0.01 to 0.005. This makes the microphone twice as sensitive to quiet notes, so you shouldn't have to crank the volume as high.
 
 ## Verification
 
 ### Manual Verification Steps
-1.  **Ghost Notes**: Ensure the "DETECTED" field in the overlay stays as `--` when the room is quiet.
-2.  **Stability**: Play a note. Watch "STABLE" appear after a brief fraction of a second.
-3.  **Matching**: Once "STABLE" matches "TARGET", the note should turn green immediately.
-4.  **Locking**: "LOCKED" should show the note name, and "WAITING" should turn to "YES".
-5.  **Release**: Release the note. "WAITING" should go to "NO", and you can play the next note.
+1.  **Octave Check**: Play C5 on your keyboard. Verify the game now displays **C5** (not C6).
+2.  **Sensitivity Check**: Play at a normal/comfortable volume. Verify the note is detected reliably.
+3.  **Ghost Note Check**: Ensure that when you stop playing, the detected note still goes to `--` (no ghost notes from background noise).
 
 ## Next Steps
-- If verified, we can remove the debug overlay.
+- If this feels good, we are ready to move on to the next feature!
