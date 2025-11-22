@@ -614,8 +614,8 @@
     .title-image {
         max-height: 150px;
         /* Scaled up 25% */
-        margin: 0 0 -70px 0;
-        /* Center horizontally, negative bottom for overlap */
+        margin: -12px 0 -70px 0;
+        /* Pull up to be flush with top, negative bottom for overlap */
         position: relative;
         z-index: 25;
     }
