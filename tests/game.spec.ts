@@ -31,7 +31,7 @@ test("Game Loop", async ({ page }) => {
     const targetText = await page.getByText(/TARGET:/).textContent();
 
     if (targetText) {
-      const targetKey = targetText.split("TARGET: ")[1]?.trim();
+      const targetKey = await targetText.split("TARGET: ")[1]?.trim();
       if (targetKey && targetKey !== "END") {
         const noteName = targetKey.charAt(0);
         await page.keyboard.press(noteName);
@@ -46,4 +46,39 @@ test("Game Loop", async ({ page }) => {
 
   const scoreText = await page.locator(".score-value").textContent();
   expect(parseInt(scoreText || "0")).toBeGreaterThan(0);
+});
+
+test("Exercise failure keeps score/progress at zero", async ({ page }) => {
+  await page.goto("/?debug=true");
+  await page.click(".drop-button");
+
+  await expect(page.locator(".drop-button")).toHaveCSS(
+    "filter",
+    "hue-rotate(90deg)",
+  );
+
+  await page.waitForTimeout(1000);
+
+  // Purposely play the wrong notes until the exercise ends
+  for (let i = 0; i < 40; i++) {
+    const targetText = await page.getByText(/TARGET:/).textContent();
+    if (!targetText) {
+      await page.waitForTimeout(100);
+      continue;
+    }
+
+    const targetKey = targetText.split("TARGET: ")[1]?.trim();
+    if (!targetKey || targetKey === "END") {
+      break;
+    }
+
+    const targetNoteLetter = targetKey.charAt(0).toUpperCase();
+    const wrongNote = targetNoteLetter === "C" ? "D" : "C";
+    await page.keyboard.press(wrongNote);
+    await page.waitForTimeout(150);
+  }
+
+  await expect(page.getByText("TRY AGAIN")).toBeVisible({ timeout: 5000 });
+  await expect(page.locator(".progress-text")).toHaveText("0%");
+  await expect(page.locator(".score-value")).toHaveText("0");
 });
