@@ -1,14 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PitchDetector } from "pitchy";
 import { audioService } from "../utils/audio";
 import {
-  detectPitch,
   analyzeAudio,
+  advanceDetectionState,
+  createDetectionState,
+  loadDetectionParams,
   type DetectedNote,
   type AudioStats,
+  type DetectionParams,
 } from "../utils/noteDetection";
 
-export function useNoteDetection(enabled: boolean = false) {
+export function useNoteDetection(
+  enabled: boolean = false,
+  paramsOverride?: Partial<DetectionParams>,
+) {
   const [note, setNote] = useState<DetectedNote | null>(null);
   const [stats, setStats] = useState<AudioStats | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -17,6 +23,13 @@ export function useNoteDetection(enabled: boolean = false) {
   const requestRef = useRef<number>(0);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const detectorRef = useRef<PitchDetector<Float32Array> | null>(null);
+  const detectionStateRef = useRef(createDetectionState());
+  const lastTimestampRef = useRef<number | null>(null);
+
+  const params = useMemo<DetectionParams>(() => {
+    const base = loadDetectionParams();
+    return { ...base, ...paramsOverride };
+  }, [paramsOverride]);
 
   useEffect(() => {
     if (!enabled) {
@@ -35,7 +48,10 @@ export function useNoteDetection(enabled: boolean = false) {
         setIsListening(true);
         setError(null);
 
-        const updatePitch = () => {
+        const updatePitch = (timestamp: number) => {
+          const previousTimestamp = lastTimestampRef.current;
+          lastTimestampRef.current = timestamp;
+
           if (analyserRef.current && detectorRef.current) {
             const currentStats = analyzeAudio(
               analyserRef.current,
@@ -44,13 +60,21 @@ export function useNoteDetection(enabled: boolean = false) {
             );
             setStats(currentStats);
 
-            const detected = detectPitch(
-              analyserRef.current,
-              detectorRef.current,
-              audioService.getSampleRate(),
+            const deltaMs = previousTimestamp
+              ? timestamp - previousTimestamp
+              : 0;
+
+            const nextState = advanceDetectionState(
+              detectionStateRef.current,
+              currentStats,
+              params,
+              deltaMs,
             );
 
-            // Only update if note changed or if we went from note -> no note
+            detectionStateRef.current = nextState;
+
+            const detected = nextState.activeNote;
+
             setNote((prev) => {
               if (!detected) return null;
               if (!prev) return detected;
@@ -61,7 +85,7 @@ export function useNoteDetection(enabled: boolean = false) {
           requestRef.current = requestAnimationFrame(updatePitch);
         };
 
-        updatePitch();
+        requestRef.current = requestAnimationFrame(updatePitch);
       } catch (err) {
         console.error("Failed to start note detection:", err);
         setError("Microphone access denied or not available.");
@@ -76,10 +100,12 @@ export function useNoteDetection(enabled: boolean = false) {
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current);
       }
+      detectionStateRef.current = createDetectionState();
+      lastTimestampRef.current = null;
       // We don't necessarily want to close the audio context on unmount
       // if we want to keep it alive for other components, but for now it's fine.
     };
-  }, [enabled]);
+  }, [enabled, params]);
 
   return { note, stats, isListening, error };
 }

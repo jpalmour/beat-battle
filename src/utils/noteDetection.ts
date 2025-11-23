@@ -21,6 +21,60 @@ export interface DetectedNote {
   clarity: number;
 }
 
+export interface DetectionParams {
+  /** Minimum RMS volume required to consider the frame audible */
+  volumeThreshold: number;
+  /** Minimum clarity reported by Pitchy to accept a candidate */
+  clarityThreshold: number;
+  /** Lowest frequency we consider valid (Hz) */
+  minFrequency: number;
+  /** Highest frequency we consider valid (Hz) */
+  maxFrequency: number;
+  /** Milliseconds a candidate must be stable before becoming active */
+  minHoldMs: number;
+  /** Milliseconds of silence/noise required to release an active note */
+  releaseMs: number;
+}
+
+export const DEFAULT_DETECTION_PARAMS: DetectionParams = {
+  volumeThreshold: 0.005,
+  clarityThreshold: 0.86,
+  minFrequency: 27.5,
+  maxFrequency: 4186,
+  minHoldMs: 140,
+  releaseMs: 120,
+};
+
+const STORAGE_KEY = "note-detection-params";
+
+export function loadDetectionParams(): DetectionParams {
+  if (typeof window === "undefined") {
+    return DEFAULT_DETECTION_PARAMS;
+  }
+
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (!stored) return DEFAULT_DETECTION_PARAMS;
+    const parsed = JSON.parse(stored) as Partial<DetectionParams>;
+    return {
+      ...DEFAULT_DETECTION_PARAMS,
+      ...parsed,
+    };
+  } catch (error) {
+    console.warn("Failed to load detection params; using defaults", error);
+    return DEFAULT_DETECTION_PARAMS;
+  }
+}
+
+export function persistDetectionParams(params: DetectionParams) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(params));
+  } catch (error) {
+    console.warn("Failed to persist detection params", error);
+  }
+}
+
 /**
  * Converts a frequency in Hz to a note name (e.g., "A4").
  * Uses A4 = 440Hz standard.
@@ -79,21 +133,110 @@ export function detectPitch(
   analyserNode: AnalyserNode,
   detector: PitchDetector<Float32Array>,
   sampleRate: number,
+  params: DetectionParams = DEFAULT_DETECTION_PARAMS,
 ): DetectedNote | null {
   const stats = analyzeAudio(analyserNode, detector, sampleRate);
+  const note = getRawNote(stats, params);
 
-  // 1. RMS Volume Threshold
-  if (stats.volume < 0.005) return null; // Lowered silence threshold for better sensitivity
-
-  // Thresholds can be tuned.
-  // Clarity is 0-1. Higher is better.
-  if (stats.clarity < 0.9 || stats.frequency < 27.5 || stats.frequency > 4186) {
-    return null;
-  }
+  if (!note) return null;
 
   return {
-    note: getNoteFromFrequency(stats.frequency),
+    note,
     frequency: stats.frequency,
     clarity: stats.clarity,
   };
+}
+
+export interface DetectionState {
+  activeNote: DetectedNote | null;
+  candidateNote: string | null;
+  candidateDuration: number;
+  releaseDuration: number;
+}
+
+export const createDetectionState = (): DetectionState => ({
+  activeNote: null,
+  candidateNote: null,
+  candidateDuration: 0,
+  releaseDuration: 0,
+});
+
+function getRawNote(stats: AudioStats, params: DetectionParams): string | null {
+  if (stats.volume < params.volumeThreshold) return null;
+  if (stats.clarity < params.clarityThreshold) return null;
+  if (
+    stats.frequency < params.minFrequency ||
+    stats.frequency > params.maxFrequency
+  ) {
+    return null;
+  }
+  return getNoteFromFrequency(stats.frequency);
+}
+
+export function advanceDetectionState(
+  state: DetectionState,
+  stats: AudioStats,
+  params: DetectionParams,
+  deltaMs: number,
+): DetectionState {
+  const rawNote = getRawNote(stats, params);
+
+  const next: DetectionState = {
+    activeNote: state.activeNote,
+    candidateNote: state.candidateNote,
+    candidateDuration: state.candidateDuration,
+    releaseDuration: state.releaseDuration,
+  };
+
+  if (rawNote) {
+    if (state.candidateNote === rawNote) {
+      next.candidateDuration = state.candidateDuration + deltaMs;
+    } else {
+      next.candidateNote = rawNote;
+      next.candidateDuration = deltaMs;
+    }
+
+    next.releaseDuration = 0;
+
+    const candidateReady = next.candidateDuration >= params.minHoldMs;
+
+    if (!state.activeNote && candidateReady) {
+      next.activeNote = {
+        note: rawNote,
+        frequency: stats.frequency,
+        clarity: stats.clarity,
+      };
+    } else if (
+      state.activeNote &&
+      state.activeNote.note !== rawNote &&
+      candidateReady
+    ) {
+      next.activeNote = {
+        note: rawNote,
+        frequency: stats.frequency,
+        clarity: stats.clarity,
+      };
+    } else if (state.activeNote && state.activeNote.note === rawNote) {
+      next.activeNote = {
+        note: rawNote,
+        frequency: stats.frequency,
+        clarity: stats.clarity,
+      };
+    }
+  } else {
+    next.candidateNote = null;
+    next.candidateDuration = 0;
+
+    if (state.activeNote) {
+      next.releaseDuration = state.releaseDuration + deltaMs;
+      if (next.releaseDuration >= params.releaseMs) {
+        next.activeNote = null;
+        next.releaseDuration = 0;
+      }
+    } else {
+      next.releaseDuration = 0;
+    }
+  }
+
+  return next;
 }
