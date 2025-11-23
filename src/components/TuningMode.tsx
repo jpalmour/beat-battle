@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useNoteDetection } from "../hooks/useNoteDetection";
 import {
   advanceDetectionState,
   createDetectionState,
   DEFAULT_DETECTION_PARAMS,
+  loadDetectionParams,
   persistDetectionParams,
   type AudioStats,
   type DetectedNote,
@@ -55,8 +56,10 @@ interface EvaluationResult {
 const PARAMETER_SPACE = {
   volumeThreshold: [0.0025, 0.0035, 0.005, 0.0075, 0.01],
   clarityThreshold: [0.75, 0.82, 0.88, 0.92],
+  releaseClarityThreshold: [0.58, 0.68, 0.78],
   minHoldMs: [80, 120, 170, 230],
   releaseMs: [70, 120, 180, 240],
+  minLowClarityMsForRelease: [80, 140, 200],
 };
 
 function buildParameterGrid(base: DetectionParams): DetectionParams[] {
@@ -64,17 +67,27 @@ function buildParameterGrid(base: DetectionParams): DetectionParams[] {
 
   PARAMETER_SPACE.volumeThreshold.forEach((volumeThreshold) => {
     PARAMETER_SPACE.clarityThreshold.forEach((clarityThreshold) => {
-      PARAMETER_SPACE.minHoldMs.forEach((minHoldMs) => {
-        PARAMETER_SPACE.releaseMs.forEach((releaseMs) => {
-          grid.push({
-            ...base,
-            volumeThreshold,
-            clarityThreshold,
-            minHoldMs,
-            releaseMs,
+      PARAMETER_SPACE.releaseClarityThreshold.forEach(
+        (releaseClarityThreshold) => {
+          PARAMETER_SPACE.minHoldMs.forEach((minHoldMs) => {
+            PARAMETER_SPACE.releaseMs.forEach((releaseMs) => {
+              PARAMETER_SPACE.minLowClarityMsForRelease.forEach(
+                (minLowClarityMsForRelease) => {
+                  grid.push({
+                    ...base,
+                    volumeThreshold,
+                    clarityThreshold,
+                    releaseClarityThreshold,
+                    minHoldMs,
+                    releaseMs,
+                    minLowClarityMsForRelease,
+                  });
+                },
+              );
+            });
           });
-        });
-      });
+        },
+      );
     });
   });
 
@@ -166,7 +179,7 @@ function evaluateLogs(logs: LogData[]): EvaluationResult {
   };
 }
 
-export const TuningMode: React.FC = () => {
+const AutoTuningMode: React.FC = () => {
   const { stats, note, error } = useNoteDetection(true);
   const [stepIndex, setStepIndex] = useState(-1); // -1 = Idle, 0+ = In Progress
   const [timeLeft, setTimeLeft] = useState(0);
@@ -290,6 +303,10 @@ export const TuningMode: React.FC = () => {
                   <span className="text-right">
                     {evaluation.best.params.clarityThreshold.toFixed(2)}
                   </span>
+                  <span>Release Clarity</span>
+                  <span className="text-right">
+                    {evaluation.best.params.releaseClarityThreshold.toFixed(2)}
+                  </span>
                   <span>Min Hold (ms)</span>
                   <span className="text-right">
                     {evaluation.best.params.minHoldMs}
@@ -297,6 +314,10 @@ export const TuningMode: React.FC = () => {
                   <span>Release (ms)</span>
                   <span className="text-right">
                     {evaluation.best.params.releaseMs}
+                  </span>
+                  <span>Low-Clarity Release (ms)</span>
+                  <span className="text-right">
+                    {evaluation.best.params.minLowClarityMsForRelease}
                   </span>
                 </div>
                 <div className="mt-4 text-sm text-gray-400">
@@ -316,7 +337,8 @@ export const TuningMode: React.FC = () => {
                       <li key={index} className="flex justify-between">
                         <span>
                           #{index + 2} · Hold {entry.params.minHoldMs}ms ·
-                          Release {entry.params.releaseMs}ms
+                          Release {entry.params.releaseMs}ms · Clarity{" "}
+                          {entry.params.releaseClarityThreshold.toFixed(2)}
                         </span>
                         <span>
                           Score {entry.score.toFixed(3)} / Prec{" "}
@@ -426,4 +448,271 @@ export const TuningMode: React.FC = () => {
       </div>
     </div>
   );
+};
+
+type ParamField = keyof DetectionParams;
+
+const CONTROL_CONFIG: {
+  key: ParamField;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  helper?: string;
+}[] = [
+  {
+    key: "volumeThreshold",
+    label: "Volume Threshold",
+    min: 0.0001,
+    max: 0.1,
+    step: 0.0001,
+    helper: "Minimum RMS volume to treat as audible input.",
+  },
+  {
+    key: "clarityThreshold",
+    label: "Clarity Threshold",
+    min: 0,
+    max: 1,
+    step: 0.01,
+    helper: "Confidence needed to accept a note-on.",
+  },
+  {
+    key: "releaseClarityThreshold",
+    label: "Release Clarity Threshold",
+    min: 0,
+    max: 1,
+    step: 0.01,
+    helper: "Confidence below this starts note-off timing.",
+  },
+  {
+    key: "minFrequency",
+    label: "Min Frequency (Hz)",
+    min: 20,
+    max: 6000,
+    step: 1,
+  },
+  {
+    key: "maxFrequency",
+    label: "Max Frequency (Hz)",
+    min: 20,
+    max: 6000,
+    step: 1,
+  },
+  {
+    key: "minHoldMs",
+    label: "Min Hold (ms)",
+    min: 0,
+    max: 1000,
+    step: 10,
+  },
+  {
+    key: "releaseMs",
+    label: "Release (ms)",
+    min: 0,
+    max: 1000,
+    step: 10,
+  },
+  {
+    key: "minLowClarityMsForRelease",
+    label: "Low-Clarity Release (ms)",
+    min: 0,
+    max: 1000,
+    step: 10,
+  },
+];
+
+interface ManualLogEntry {
+  time: string;
+  message: string;
+}
+
+const ManualTuningMode: React.FC = () => {
+  const [params, setParams] = useState<DetectionParams>(() =>
+    loadDetectionParams(),
+  );
+  const [isListening, setIsListening] = useState(false);
+  const { note, stats, error } = useNoteDetection(isListening, params);
+  const [log, dispatchLog] = useReducer(
+    (
+      state: ManualLogEntry[],
+      action: { type: "append"; entry: ManualLogEntry } | { type: "clear" },
+    ) => {
+      if (action.type === "clear") return [];
+      return [action.entry, ...state].slice(0, 200);
+    },
+    [],
+  );
+  const lastNoteRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const currentNote = note?.note ?? null;
+    if (currentNote !== lastNoteRef.current) {
+      const time = new Date().toLocaleTimeString();
+      dispatchLog({
+        type: "append",
+        entry: { time, message: currentNote ?? "(released)" },
+      });
+      lastNoteRef.current = currentNote;
+    }
+  }, [note]);
+
+  const handleChange = (key: ParamField, value: number) => {
+    setParams((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const resetToDefaults = () => setParams(DEFAULT_DETECTION_PARAMS);
+  const saveParams = () => persistDetectionParams(params);
+
+  const startStopLabel = isListening ? "Stop Listening" : "Start Listening";
+
+  const activeParams = useMemo(() => params, [params]);
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white p-6 flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold">Manual Tuning</h1>
+          <p className="text-gray-300">
+            Adjust parameters, listen live, and save to localStorage when happy.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsListening((prev) => !prev)}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded"
+          >
+            {startStopLabel}
+          </button>
+          <button
+            onClick={() => dispatchLog({ type: "clear" })}
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded"
+          >
+            Clear Log
+          </button>
+          <button
+            onClick={resetToDefaults}
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded"
+          >
+            Reset Params
+          </button>
+          <button
+            onClick={saveParams}
+            className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded"
+          >
+            Save Tuned Settings
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-900 text-white p-4 rounded">{error}</div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-gray-800 p-4 rounded">
+          <h2 className="text-2xl font-semibold mb-4">Detection Parameters</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {CONTROL_CONFIG.map((control) => (
+              <label key={control.key} className="flex flex-col gap-2">
+                <div className="flex justify-between text-sm text-gray-300">
+                  <span>{control.label}</span>
+                  <span className="font-mono">
+                    {activeParams[control.key]
+                      .toFixed(4)
+                      .replace(/0+$/, "")
+                      .replace(/\.$/, "")}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={control.min}
+                  max={control.max}
+                  step={control.step}
+                  value={activeParams[control.key]}
+                  onChange={(e) =>
+                    handleChange(control.key, Number(e.target.value))
+                  }
+                />
+                <input
+                  type="number"
+                  className="bg-gray-900 p-2 rounded border border-gray-700 text-white"
+                  min={control.min}
+                  max={control.max}
+                  step={control.step}
+                  value={activeParams[control.key]}
+                  onChange={(e) =>
+                    handleChange(control.key, Number(e.target.value))
+                  }
+                />
+                {control.helper && (
+                  <span className="text-xs text-gray-400">
+                    {control.helper}
+                  </span>
+                )}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-gray-800 p-4 rounded flex flex-col gap-4">
+          <h2 className="text-2xl font-semibold">Live Monitor</h2>
+          <div className="grid grid-cols-2 gap-2 text-sm font-mono">
+            <span className="text-gray-400">Frequency</span>
+            <span className="text-right">
+              {stats?.frequency.toFixed(1) ?? "---"} Hz
+            </span>
+            <span className="text-gray-400">Clarity</span>
+            <span className="text-right">
+              {stats?.clarity.toFixed(3) ?? "---"}
+            </span>
+            <span className="text-gray-400">Volume</span>
+            <span className="text-right">
+              {stats?.volume.toFixed(4) ?? "---"}
+            </span>
+            <span className="text-gray-400">Detected</span>
+            <span className="text-right text-green-400 font-bold">
+              {note?.note ?? "---"}
+            </span>
+          </div>
+
+          <div className="bg-gray-900 rounded p-2 h-64 overflow-auto font-mono text-sm space-y-1">
+            {log.length === 0 ? (
+              <div className="text-gray-500">No detections yet.</div>
+            ) : (
+              log.map((entry, index) => (
+                <div key={index} className="flex justify-between">
+                  <span className="text-gray-500">{entry.time}</span>
+                  <span
+                    className={
+                      entry.message === "(released)"
+                        ? "text-gray-400"
+                        : "text-green-300"
+                    }
+                  >
+                    {entry.message}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gray-800 p-4 rounded text-sm text-gray-300">
+        <p>
+          Changes apply immediately while listening. Saved values are used by
+          both auto-tune and normal gameplay on next load.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+interface TuningModeProps {
+  mode: "auto" | "manual";
+}
+
+export const TuningMode: React.FC<TuningModeProps> = ({ mode }) => {
+  if (mode === "manual") return <ManualTuningMode />;
+  return <AutoTuningMode />;
 };

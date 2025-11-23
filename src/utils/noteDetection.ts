@@ -26,6 +26,8 @@ export interface DetectionParams {
   volumeThreshold: number;
   /** Minimum clarity reported by Pitchy to accept a candidate */
   clarityThreshold: number;
+  /** Clarity below which we consider the detector unsure during release */
+  releaseClarityThreshold: number;
   /** Lowest frequency we consider valid (Hz) */
   minFrequency: number;
   /** Highest frequency we consider valid (Hz) */
@@ -34,16 +36,28 @@ export interface DetectionParams {
   minHoldMs: number;
   /** Milliseconds of silence/noise required to release an active note */
   releaseMs: number;
+  /** Milliseconds of low clarity required to release an active note */
+  minLowClarityMsForRelease: number;
 }
 
 export const DEFAULT_DETECTION_PARAMS: DetectionParams = {
   volumeThreshold: 0.005,
   clarityThreshold: 0.86,
+  releaseClarityThreshold: 0.72,
   minFrequency: 27.5,
   maxFrequency: 4186,
   minHoldMs: 140,
   releaseMs: 120,
+  minLowClarityMsForRelease: 160,
 };
+
+/**
+ * Canonical built-in defaults for the detection pipeline. Auto- and manual-tune
+ * both persist overrides to localStorage (note-detection-params), and normal
+ * gameplay loads those values when present. Update these defaults when you want
+ * to change the out-of-the-box behavior (e.g., after tuning on a reference
+ * piano/mic setup).
+ */
 
 const STORAGE_KEY = "note-detection-params";
 
@@ -180,6 +194,10 @@ export function advanceDetectionState(
   deltaMs: number,
 ): DetectionState {
   const rawNote = getRawNote(stats, params);
+  const volumeBelowThreshold = stats.volume < params.volumeThreshold;
+  const clarityBelowRelease =
+    stats.clarity < params.releaseClarityThreshold ||
+    Number.isNaN(stats.clarity);
 
   const next: DetectionState = {
     activeNote: state.activeNote,
@@ -226,16 +244,27 @@ export function advanceDetectionState(
   } else {
     next.candidateNote = null;
     next.candidateDuration = 0;
+  }
 
-    if (state.activeNote) {
-      next.releaseDuration = state.releaseDuration + deltaMs;
-      if (next.releaseDuration >= params.releaseMs) {
-        next.activeNote = null;
-        next.releaseDuration = 0;
-      }
-    } else {
+  const releasingBySilence =
+    !!state.activeNote && (!rawNote || volumeBelowThreshold);
+  const releasingByClarity = !!state.activeNote && clarityBelowRelease;
+
+  if (releasingBySilence || releasingByClarity) {
+    next.releaseDuration = state.releaseDuration + deltaMs;
+
+    const reachedSilentRelease =
+      releasingBySilence && next.releaseDuration >= params.releaseMs;
+    const reachedClarityRelease =
+      releasingByClarity &&
+      next.releaseDuration >= params.minLowClarityMsForRelease;
+
+    if (reachedSilentRelease || reachedClarityRelease) {
+      next.activeNote = null;
       next.releaseDuration = 0;
     }
+  } else {
+    next.releaseDuration = 0;
   }
 
   return next;
