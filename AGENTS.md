@@ -9,44 +9,36 @@ This document is designed to help AI agents quickly understand and contribute to
 
 ## UI Layouts & Validation
 
-The application supports 3 distinct layout modes based on screen size and orientation. **ALL UI changes must be validated against these 3 layouts.**
-
-## UI Layouts & Validation
-
 The application implements a strict **4-State Layout System** to ensure quality across devices.
 
 ### 1. Not Supported
 - **Condition**: `max(width, height) < 812px`
 - **Description**: Device is too small (e.g., older phones). Displays "Device Not Supported" overlay.
-- **Validation**: Test with window size ~600x400.
 
 ### 2. Rotate Required
 - **Condition**: `max(width, height) >= 812px` AND `orientation: portrait`
 - **Description**: Device is capable but in wrong orientation. Displays "Rotate Your Device" overlay.
-- **Validation**: Test with window size ~400x850.
 
 ### 3. Compact Landscape (Phone)
 - **Condition**: `orientation: landscape` AND `width <= 920px`
-- **Description**: 
+- **Description**:
     - Title scaled down (0.8x) and positioned lower.
     - Reduced padding and gaps.
     - Smaller progress bar and score.
-- **Validation**: 
-    - **Critical**: Ensure the title logo does NOT overlap with the "Rec/Note" group (left) or "Score/Progress" group (right).
-    - **Critical**: Ensure the "Street Score" remains centered under the progress bar.
-    - Verify at widths ~812px (iPhone X) and ~850px.
+    - **Critical**: Title logo must NOT overlap with the "Rec/Note" group (left) or "Score/Progress" group (right).
 
 ### 4. Standard Landscape (Desktop/Tablet)
 - **Condition**: `orientation: landscape` AND `width > 920px`
 - **Description**: Full-size title, spacious padding, standard component sizes.
-- **Validation**: Ensure no overlap between HUD elements. Title should be centered.
 
-### Validation Procedure
-When making UI changes:
-1.  **Analyze** the impact on all 3 layouts.
-2.  **Verify** visually (using browser tools or screenshots) that elements do not spill over or overlap in Compact Landscape mode.
-3.  **Fix** any obvious alignment or spacing issues automatically.
-4.  **Present** the results to the user if uncertain.
+### Automated Validation
+Layout validation is **fully automated** via Playwright E2E tests (`tests/layout.spec.ts`). These tests:
+- Verify all 4 layout states render correctly
+- Check for element overlaps in compact mode
+- Test boundary conditions (812px height, 920px width thresholds)
+- Run automatically in CI/CD on all PRs
+
+**When making UI changes**: Simply run `npx playwright test` to validate all layouts. No manual testing required.
 
 ## Testing Strategy
 
