@@ -27,8 +27,54 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Inject commit hash into built files
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          find dist -type f -name "*.html" -exec sed -i "s/__COMMIT_HASH__/$COMMIT_HASH/g" {} +
+
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: dist # The folder the action should deploy.
           branch: gh-pages # The branch the action should deploy to.
+
+  smoke-test:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify deployment
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          DEPLOYED_URL="https://jpalmour.github.io/beat-battle/"
+          MAX_ATTEMPTS=10
+          SLEEP_DURATION=30
+
+          echo "Expected commit hash: $COMMIT_HASH"
+          echo "Checking deployment at: $DEPLOYED_URL"
+
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Attempt $i of $MAX_ATTEMPTS..."
+
+            # Fetch the page and extract version meta tag
+            DEPLOYED_VERSION=$(curl -s "$DEPLOYED_URL" | grep -oP '<meta name="version" content="\K[^"]+' || echo "")
+
+            echo "Deployed version: $DEPLOYED_VERSION"
+
+            if [ "$DEPLOYED_VERSION" = "$COMMIT_HASH" ]; then
+              echo "✅ Deployment verified! Version matches: $COMMIT_HASH"
+              exit 0
+            fi
+
+            if [ $i -lt $MAX_ATTEMPTS ]; then
+              echo "Version mismatch. Waiting ${SLEEP_DURATION}s before retry..."
+              sleep $SLEEP_DURATION
+            fi
+          done
+
+          echo "❌ Deployment verification failed after $MAX_ATTEMPTS attempts"
+          echo "Expected: $COMMIT_HASH"
+          echo "Got: $DEPLOYED_VERSION"
+          exit 1
