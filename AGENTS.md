@@ -96,6 +96,47 @@ When making UI changes:
 - **Typography**: 'Bangers' for headings, 'Inter' for UI text.
 - **Layout**: Mobile-first landscape optimization.
 
+## Git Workflow (CRITICAL)
+
+**⚠️ MAIN BRANCH IS PROTECTED - NEVER COMMIT DIRECTLY TO MAIN ⚠️**
+
+### Workflow Rules (MUST FOLLOW)
+
+1.  **Always work on feature branches** - NEVER commit directly to `main`
+2.  **Branch naming**: Use descriptive names with prefixes:
+    - `feature/` - New features (e.g., `feature/add-bass-clef-support`)
+    - `fix/` - Bug fixes (e.g., `fix/audio-detection-timeout`)
+    - `chore/` - Maintenance tasks (e.g., `chore/update-dependencies`)
+    - `docs/` - Documentation updates (e.g., `docs/update-readme`)
+3.  **Create feature branches**: `git checkout -b feature/your-feature-name`
+4.  **Commit to feature branch**: Make all commits on your feature branch
+5.  **Create PR using gh CLI**: `gh pr create --title "Title" --body "Description"`
+6.  **Never push to main**: If you accidentally commit to main, create a new branch from that commit and reset main
+
+### Example Workflow
+
+```bash
+# 1. Create and switch to feature branch
+git checkout -b feature/add-new-level
+
+# 2. Make changes and commit
+git add .
+git commit -m "feat: add level 5 with ledger lines"
+
+# 3. Push feature branch
+git push -u origin feature/add-new-level
+
+# 4. Create PR using gh CLI
+gh pr create --title "Add Level 5 with Ledger Lines" --body "Description here"
+```
+
+### Why This Matters
+
+- Main branch is protected and requires PR reviews
+- CI/CD runs on PRs before merging
+- Prevents broken code from reaching production
+- Maintains clean git history
+
 ## Development Rules
 
 1.  **No Tailwind**: Do not introduce Tailwind CSS. Use standard CSS classes and variables.
