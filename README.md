@@ -25,20 +25,6 @@ The app supports 4 distinct layout states:
 - **Audio Detection**: Pitchy (Microphone pitch detection)
 - **Styling**: Vanilla CSS (Custom Design System)
 
-## Testing
-
-### Unit Tests
-Unit tests are written using **Vitest**. They run automatically on pre-commit to ensure code quality.
-```bash
-npm run test
-```
-
-### End-to-End (E2E) Tests
-E2E tests are written using **Playwright**. They run in CI on every Pull Request to `main`.
-```bash
-npx playwright test
-```
-
 ## Getting Started
 
 1.  **Install dependencies**:
@@ -58,14 +44,32 @@ npx playwright test
 
 ## Testing
 
-- **Run unit tests**:
-  ```bash
-  npm run test:unit
-  ```
+### Unit Tests
+Unit tests are written using **Vitest**. They run automatically on pre-commit to ensure code quality.
 
-- **Run unit tests with coverage output (text, HTML, and lcov in `coverage/`)**:
+- **Run all unit tests**:
+  ```bash
+  npm run test
+  ```
+- **Run with coverage**:
   ```bash
   npm run test:unit:coverage
+  ```
+
+### End-to-End (E2E) Tests
+E2E tests are written using **Playwright**. They run in CI on every Pull Request to `main`.
+
+- **Run all E2E tests (Headless)**:
+  ```bash
+  npx playwright test
+  ```
+- **Run visually (Headed mode)**:
+  ```bash
+  npx playwright test --headed
+  ```
+- **Open Test UI (Interactive)**:
+  ```bash
+  npx playwright test --ui
   ```
 
 ## Project Structure
