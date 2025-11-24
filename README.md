@@ -1,6 +1,6 @@
 # Zora's Beat Battle
 
-A gamified sight-reading practice app designed to make learning piano fun and engaging.
+A gamified sight-reading practice app.
 
 ## Features
 

@@ -2,7 +2,10 @@ import { describe, it, expect } from "vitest";
 import { PitchDetector } from "pitchy";
 import {
   analyzeAudio,
+  advanceDetectionState,
+  createDetectionState,
   detectPitch,
+  DEFAULT_DETECTION_PARAMS,
   getNoteFromFrequency,
 } from "./noteDetection";
 
@@ -83,6 +86,80 @@ describe("noteDetection", () => {
         frequency: 440,
         clarity: 0.95,
       });
+    });
+  });
+
+  describe("advanceDetectionState", () => {
+    const params = {
+      ...DEFAULT_DETECTION_PARAMS,
+      minHoldMs: 50,
+      releaseMs: 30,
+      minLowClarityMsForRelease: 30,
+    };
+    const loudStats = { frequency: 440, clarity: 0.95, volume: 0.02 };
+
+    it("requires a stable hold before activating a note", () => {
+      let state = createDetectionState();
+      state = advanceDetectionState(state, loudStats, params, 20);
+      expect(state.activeNote).toBeNull();
+
+      state = advanceDetectionState(state, loudStats, params, 40);
+      expect(state.activeNote?.note).toBe("A3");
+    });
+
+    it("releases a note after sustained silence", () => {
+      let state = createDetectionState();
+      state = advanceDetectionState(state, loudStats, params, 60);
+
+      state = advanceDetectionState(
+        state,
+        { frequency: 0, clarity: 0, volume: 0 },
+        params,
+        10,
+      );
+      expect(state.activeNote).not.toBeNull();
+
+      state = advanceDetectionState(
+        state,
+        { frequency: 0, clarity: 0, volume: 0 },
+        params,
+        40,
+      );
+      expect(state.activeNote).toBeNull();
+    });
+
+    it("can release when clarity drops even if volume is above the threshold", () => {
+      const clarityReleaseParams = {
+        ...params,
+        clarityThreshold: 0.5,
+        releaseClarityThreshold: 0.7,
+        minLowClarityMsForRelease: 40,
+      } satisfies typeof params;
+
+      const stateWithActive = advanceDetectionState(
+        createDetectionState(),
+        { frequency: 440, clarity: 0.9, volume: 0.02 },
+        clarityReleaseParams,
+        60,
+      );
+
+      const midState = advanceDetectionState(
+        stateWithActive,
+        { frequency: 440, clarity: 0.6, volume: 0.02 },
+        clarityReleaseParams,
+        30,
+      );
+
+      expect(midState.activeNote).not.toBeNull();
+
+      const releasedState = advanceDetectionState(
+        midState,
+        { frequency: 440, clarity: 0.6, volume: 0.02 },
+        clarityReleaseParams,
+        20,
+      );
+
+      expect(releasedState.activeNote).toBeNull();
     });
   });
 });

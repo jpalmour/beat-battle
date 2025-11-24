@@ -3,12 +3,16 @@ import { TuningMode } from "./components/TuningMode";
 import { Game } from "./components/Game";
 
 function App() {
-  // Check for tuning mode
-  const isTuningMode =
-    new URLSearchParams(window.location.search).get("tune") === "true";
+  const tuneParam = new URLSearchParams(window.location.search).get("tune");
+  const tuneMode =
+    tuneParam === "manual"
+      ? "manual"
+      : tuneParam === "auto" || tuneParam === "true" || tuneParam === "1"
+        ? "auto"
+        : null;
 
-  if (isTuningMode) {
-    return <TuningMode />;
+  if (tuneMode) {
+    return <TuningMode mode={tuneMode} />;
   }
 
   return <Game />;
