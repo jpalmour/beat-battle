@@ -165,6 +165,13 @@ function evaluateConfig(
 }
 
 function evaluateLogs(logs: LogData[]): EvaluationResult {
+  if (logs.length === 0) {
+    return {
+      best: null,
+      ranked: [],
+    };
+  }
+
   const base = DEFAULT_DETECTION_PARAMS;
   const candidates = buildParameterGrid(base);
 
@@ -231,7 +238,12 @@ const AutoTuningMode: React.FC = () => {
     setIsFinished(true);
     const evaluationResult = evaluateLogs(logsRef.current);
     setEvaluation(evaluationResult);
-    if (evaluationResult.best) {
+    const shouldPersist =
+      logsRef.current.length > 0 &&
+      evaluationResult.best !== null &&
+      evaluationResult.best.score !== 0;
+
+    if (shouldPersist && evaluationResult.best) {
       persistDetectionParams(evaluationResult.best.params);
     }
     console.log("=== TUNING DATA COLLECTION COMPLETE ===");
