@@ -75,6 +75,47 @@ const MusicStaff = ({
       .reduce((total, measure) => total + measure.length, 0);
   };
 
+  // Calculate beats for a duration string (e.g., "q" = 1, "8" = 0.5, "hd" = 3)
+  const getDurationBeats = (duration: string): number => {
+    const baseDuration = duration.replace(/d+$/, "");
+    const dotCount = (duration.match(/d+$/) || [""])[0].length;
+    let beats: number;
+    switch (baseDuration) {
+      case "w":
+        beats = 4;
+        break;
+      case "h":
+        beats = 2;
+        break;
+      case "q":
+        beats = 1;
+        break;
+      case "8":
+        beats = 0.5;
+        break;
+      case "16":
+        beats = 0.25;
+        break;
+      default:
+        beats = 1;
+    }
+    // Apply dots: each dot adds half the previous value
+    let dotValue = beats / 2;
+    for (let i = 0; i < dotCount; i++) {
+      beats += dotValue;
+      dotValue /= 2;
+    }
+    return beats;
+  };
+
+  // Calculate total beats in a measure
+  const getMeasureBeats = (measure: Note[]): number => {
+    return measure.reduce(
+      (total, note) => total + getDurationBeats(note.duration),
+      0,
+    );
+  };
+
   const renderStaff = (
     container: HTMLDivElement,
     exercise: Exercise,
@@ -257,9 +298,17 @@ const MusicStaff = ({
         // are positioned sequentially on a shared timeline, preventing stacking
         if (allNotes.length) {
           const unifiedVoice = buildVoice(allNotes);
+
+          // Calculate proportional format width for pickup/partial measures
+          // This ensures notes in pickup measures have the same spacing as full measures
+          const measureBeats = getMeasureBeats(measure);
+          const fullMeasureBeats = numBeats;
+          const beatRatio = Math.min(measureBeats / fullMeasureBeats, 1);
+          const formatWidth = (measureWidth - 20) * beatRatio;
+
           new Formatter()
             .joinVoices([unifiedVoice])
-            .format([unifiedVoice], measureWidth - 20);
+            .format([unifiedVoice], formatWidth);
 
           // Draw each note individually - it will render on its assigned stave
           allNotes.forEach((note) => {
@@ -295,7 +344,13 @@ const MusicStaff = ({
 
         const beams = Beam.generateBeams(notes);
 
-        new Formatter().joinVoices([voice]).formatToStave([voice], stave);
+        // Calculate proportional format width for pickup/partial measures
+        const measureBeats = getMeasureBeats(measure);
+        const fullMeasureBeats = numBeats;
+        const beatRatio = Math.min(measureBeats / fullMeasureBeats, 1);
+        const formatWidth = (measureWidth - 20) * beatRatio;
+
+        new Formatter().joinVoices([voice]).format([voice], formatWidth);
 
         voice.draw(context, stave);
         beams.forEach((beam) => beam.setContext(context).draw());
