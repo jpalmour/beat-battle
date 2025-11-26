@@ -80,7 +80,7 @@ test.describe("Voice Training Mode", () => {
       "hue-rotate(90deg)",
     );
 
-    // Progress should reset to 0%
-    await expect(page.locator(".progress-text")).toHaveText("0%");
+    // Progress should reset to 0/25 (format is now notes played/total)
+    await expect(page.locator(".progress-text")).toHaveText("0/25");
   });
 });

@@ -60,6 +60,9 @@ const createEngineState = () => ({
   noteStatuses: [] as NoteStatus[],
   feedback: "none" as const,
   reset: vi.fn(),
+  score: 0,
+  correctCount: 0,
+  errorCount: 0,
   debug: {
     targetKey: "",
     isWaitingForRelease: false,
