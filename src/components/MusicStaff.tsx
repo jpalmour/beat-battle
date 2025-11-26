@@ -96,11 +96,11 @@ const MusicStaff = ({
     const measuresToRender = measuresPerPage
       ? exercise.measures.slice(start, start + measuresPerPage)
       : exercise.measures.slice(start);
-    const measureWidth = availableWidth / Math.max(1, measuresToRender.length);
 
     const [beats, beatValue] = (exercise.timeSignature ?? "4/4").split("/");
     const numBeats = Number.parseInt(beats) || 4;
     const beatValueNum = Number.parseInt(beatValue) || 4;
+    const measureWidth = availableWidth / Math.max(1, measuresToRender.length);
 
     const renderer = new Renderer(container, Renderer.Backends.SVG);
     renderer.resize(LOGICAL_WIDTH, LOGICAL_HEIGHT);
