@@ -132,8 +132,10 @@ const MusicStaff = ({
     const LOGICAL_HEIGHT = layout === "grand" ? 240 : 150;
     const LOGICAL_WIDTH = 800; // Wide enough for 4 measures
 
-    const padding = 10;
-    const availableWidth = LOGICAL_WIDTH - padding * 2;
+    // Extra left padding for grand staff to accommodate the brace
+    const leftPadding = layout === "grand" ? 25 : 10;
+    const rightPadding = 10;
+    const availableWidth = LOGICAL_WIDTH - leftPadding - rightPadding;
     const measuresToRender = measuresPerPage
       ? exercise.measures.slice(start, start + measuresPerPage)
       : exercise.measures.slice(start);
@@ -162,7 +164,7 @@ const MusicStaff = ({
     const skippedNotes = getNoteCountUpToMeasure(exercise.measures, start);
     let globalNoteIndex = skippedNotes;
 
-    let currentX = padding;
+    let currentX = leftPadding;
     const trebleY = 10;
     const staffGap = 90;
     const bassY = trebleY + staffGap;
