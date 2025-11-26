@@ -216,13 +216,16 @@ const MusicStaff = ({
         trebleStave.setContext(context).draw();
         bassStave.setContext(context).draw();
 
-        const brace = new StaveConnector(trebleStave, bassStave);
-        brace.setType(StaveConnector.type.BRACE).setContext(context).draw();
-        const leftLine = new StaveConnector(trebleStave, bassStave);
-        leftLine
-          .setType(StaveConnector.type.SINGLE_LEFT)
-          .setContext(context)
-          .draw();
+        // Only draw brace and left connector on the first measure of each line
+        if (index === 0) {
+          const brace = new StaveConnector(trebleStave, bassStave);
+          brace.setType(StaveConnector.type.BRACE).setContext(context).draw();
+          const leftLine = new StaveConnector(trebleStave, bassStave);
+          leftLine
+            .setType(StaveConnector.type.SINGLE_LEFT)
+            .setContext(context)
+            .draw();
+        }
 
         // Build all notes in original measure order for unified x-positioning
         // This ensures sequential notes don't stack, even when spanning clefs
