@@ -9,6 +9,7 @@ import {
   Accidental,
   BarlineType,
   StaveConnector,
+  Dot,
 } from "vexflow";
 import type { Exercise, Note } from "../types/music";
 
@@ -129,11 +130,19 @@ const MusicStaff = ({
       clef: "treble" | "bass",
       status: NoteStatus,
     ) => {
+      const dotMatch = noteData.duration.match(/d+$/);
+      const dotCount = dotMatch ? dotMatch[0].length : 0;
+      const baseDuration = noteData.duration.replace(/d+$/, "") || "q";
+
       const staveNote = new StaveNote({
         keys: noteData.keys,
-        duration: noteData.duration,
+        duration: baseDuration,
         clef,
       });
+
+      for (let i = 0; i < dotCount; i++) {
+        Dot.buildAndAttach([staveNote], { all: true });
+      }
 
       let color = "#f7f7f7";
       if (status === "current") color = "#ffeb3b";
@@ -231,9 +240,11 @@ const MusicStaff = ({
         ) as Voice[];
 
         if (voicesToFormat.length) {
-          new Formatter()
-            .joinVoices(voicesToFormat)
-            .format(voicesToFormat, measureWidth - 20);
+          const formatter = new Formatter();
+          if (voicesToFormat.length > 1) {
+            formatter.joinVoices(voicesToFormat);
+          }
+          formatter.format(voicesToFormat, measureWidth - 20);
         }
 
         if (trebleVoice) trebleVoice.draw(context, trebleStave);

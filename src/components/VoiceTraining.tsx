@@ -90,13 +90,24 @@ export function VoiceTraining({ songId }: { songId: string }) {
     [song, currentNoteIndex],
   );
 
+  const overridePageParam = new URLSearchParams(window.location.search).get(
+    "page",
+  );
+  const overridePage = useMemo(() => {
+    if (!overridePageParam) return null;
+    const parsed = Number.parseInt(overridePageParam, 10);
+    if (Number.isNaN(parsed)) return null;
+    return Math.min(Math.max(parsed - 1, 0), Math.max(totalPages - 1, 0));
+  }, [overridePageParam, totalPages]);
+
   const currentPage = useMemo(() => {
+    if (overridePage !== null) return overridePage;
     if (currentMeasureIndex === null) return 0;
     return Math.min(
       Math.floor(currentMeasureIndex / MEASURES_PER_PAGE),
       totalPages - 1,
     );
-  }, [currentMeasureIndex, totalPages]);
+  }, [currentMeasureIndex, totalPages, overridePage]);
 
   const handleDropTheBeat = () => {
     if (!audioEnabled) {
