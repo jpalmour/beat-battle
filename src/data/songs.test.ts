@@ -51,4 +51,24 @@ describe("happyBirthdaySong", () => {
     }));
     expect(keysAndDurations).toEqual(expectedSequence);
   });
+
+  it("assigns bass clef for octave < 4 and treble clef for octave >= 4", () => {
+    const flattened = happyBirthdaySong.measures.flat();
+
+    // Check some bass clef notes (octave 3)
+    const bassNotes = flattened.filter((note) => note.keys[0].includes("/3"));
+    bassNotes.forEach((note) => {
+      expect(note.clef).toBe("bass");
+    });
+
+    // Check some treble clef notes (octave 4)
+    const trebleNotes = flattened.filter((note) => note.keys[0].includes("/4"));
+    trebleNotes.forEach((note) => {
+      expect(note.clef).toBe("treble");
+    });
+
+    // Verify we have notes in both clefs
+    expect(bassNotes.length).toBeGreaterThan(0);
+    expect(trebleNotes.length).toBeGreaterThan(0);
+  });
 });
