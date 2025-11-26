@@ -224,6 +224,9 @@ const MusicStaff = ({
           .setContext(context)
           .draw();
 
+        // Build all notes in original measure order for unified x-positioning
+        // This ensures sequential notes don't stack, even when spanning clefs
+        const allNotes: StaveNote[] = [];
         const trebleNotes: StaveNote[] = [];
         const bassNotes: StaveNote[] = [];
 
@@ -234,35 +237,35 @@ const MusicStaff = ({
           const staveNote = buildNote(noteData, noteClef, status);
           staveNote.setStave(targetStave);
 
+          allNotes.push(staveNote);
           if (noteClef === "bass") bassNotes.push(staveNote);
           else trebleNotes.push(staveNote);
 
           globalNoteIndex++;
         });
 
-        const trebleVoice = trebleNotes.length ? buildVoice(trebleNotes) : null;
-        const bassVoice = bassNotes.length ? buildVoice(bassNotes) : null;
-
+        // Generate beams per-clef to avoid cross-staff beaming
         const trebleBeams = trebleNotes.length
           ? Beam.generateBeams(trebleNotes)
           : [];
         const bassBeams = bassNotes.length ? Beam.generateBeams(bassNotes) : [];
 
-        const voicesToFormat = [trebleVoice, bassVoice].filter(
-          Boolean,
-        ) as Voice[];
+        // Use a single unified voice for formatting - this ensures all notes
+        // are positioned sequentially on a shared timeline, preventing stacking
+        if (allNotes.length) {
+          const unifiedVoice = buildVoice(allNotes);
+          new Formatter()
+            .joinVoices([unifiedVoice])
+            .format([unifiedVoice], measureWidth - 20);
 
-        if (voicesToFormat.length) {
-          const formatter = new Formatter();
-          if (voicesToFormat.length > 1) {
-            formatter.joinVoices(voicesToFormat);
-          }
-          formatter.format(voicesToFormat, measureWidth - 20);
+          // Draw each note individually - it will render on its assigned stave
+          allNotes.forEach((note) => {
+            note.setContext(context).draw();
+          });
         }
 
-        if (trebleVoice) trebleVoice.draw(context, trebleStave);
+        // Draw beams
         trebleBeams.forEach((beam) => beam.setContext(context).draw());
-        if (bassVoice) bassVoice.draw(context, bassStave);
         bassBeams.forEach((beam) => beam.setContext(context).draw());
       } else {
         const stave = new Stave(currentX, trebleY, measureWidth);
