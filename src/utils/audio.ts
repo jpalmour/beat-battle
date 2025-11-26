@@ -8,9 +8,16 @@ export class AudioService {
       return this.analyser;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.audioContext = new (window.AudioContext ||
-      (window as any).webkitAudioContext)();
+    const contextConstructor =
+      window.AudioContext ||
+      (window as Window & { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
+
+    if (!contextConstructor) {
+      throw new Error("Web Audio API is not supported in this browser");
+    }
+
+    this.audioContext = new contextConstructor();
 
     // Resume context if suspended (browser policy)
     if (this.audioContext.state === "suspended") {
