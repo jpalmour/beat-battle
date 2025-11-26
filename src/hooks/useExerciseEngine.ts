@@ -11,6 +11,7 @@ interface UseExerciseEngineProps {
   isRecording: boolean;
   onComplete?: () => void;
   onFail?: () => void;
+  octaveAgnostic?: boolean; // If true, any octave of the correct note counts as correct
 }
 
 export function useExerciseEngine({
@@ -20,12 +21,16 @@ export function useExerciseEngine({
   isRecording,
   onComplete,
   onFail,
+  octaveAgnostic = false,
 }: UseExerciseEngineProps) {
   const [currentNoteIndex, setCurrentNoteIndex] = useState(0);
   const [noteStatuses, setNoteStatuses] = useState<NoteStatus[]>([]);
   const [feedback, setFeedback] = useState<"none" | "correct" | "error">(
     "none",
   );
+  const [score, setScore] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [errorCount, setErrorCount] = useState(0);
 
   // Refinements State
   // Refinements State
@@ -44,6 +49,9 @@ export function useExerciseEngine({
     setIsWaitingForRelease(false);
     setLockedNote(null);
     setStableNote(null);
+    setScore(0);
+    setCorrectCount(0);
+    setErrorCount(0);
   };
 
   // Reset when exercise changes
@@ -93,7 +101,11 @@ export function useExerciseEngine({
     const [noteName, octave] = targetKey.split("/");
     const normalizedTarget = `${noteName.toUpperCase()}${octave}`;
 
-    const isMatch = stableNote.note === normalizedTarget;
+    // Octave-agnostic matching: compare only note names (ignore octave)
+    const isMatch = octaveAgnostic
+      ? stableNote.note.replace(/[0-9]/g, "") ===
+        normalizedTarget.replace(/[0-9]/g, "")
+      : stableNote.note === normalizedTarget;
 
     // Update Status
     setNoteStatuses((prev) => {
@@ -101,6 +113,14 @@ export function useExerciseEngine({
       next[currentNoteIndex] = isMatch ? "correct" : "error";
       return next;
     });
+
+    // Update score and counts
+    if (isMatch) {
+      setScore((prev) => prev + 100);
+      setCorrectCount((prev) => prev + 1);
+    } else {
+      setErrorCount((prev) => prev + 1);
+    }
 
     // Feedback
     setFeedback(isMatch ? "correct" : "error");
@@ -139,6 +159,7 @@ export function useExerciseEngine({
     noteStatuses,
     onComplete,
     onFail,
+    octaveAgnostic,
   ]);
 
   // 3. Cheat / Manual Input Logic
@@ -177,6 +198,14 @@ export function useExerciseEngine({
       return next;
     });
 
+    // Update score and counts for cheat input too
+    if (isMatch) {
+      setScore((prev) => prev + 100);
+      setCorrectCount((prev) => prev + 1);
+    } else {
+      setErrorCount((prev) => prev + 1);
+    }
+
     setFeedback(isMatch ? "correct" : "error");
 
     const nextIndex = currentNoteIndex + 1;
@@ -214,6 +243,9 @@ export function useExerciseEngine({
     noteStatuses,
     feedback,
     reset,
+    score,
+    correctCount,
+    errorCount,
     debug: {
       targetKey,
       isWaitingForRelease,

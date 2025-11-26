@@ -75,15 +75,24 @@ export function VoiceTraining({ songId }: { songId: string }) {
     setSongComplete(true);
   };
 
-  const { noteStatuses, feedback, reset, currentNoteIndex, debug } =
-    useExerciseEngine({
-      exercise: song,
-      detectedNote,
-      simulatedNote,
-      isRecording,
-      onComplete: handleComplete,
-      onFail: handleComplete,
-    });
+  const {
+    noteStatuses,
+    feedback,
+    reset,
+    currentNoteIndex,
+    score,
+    correctCount,
+    errorCount,
+    debug,
+  } = useExerciseEngine({
+    exercise: song,
+    detectedNote,
+    simulatedNote,
+    isRecording,
+    onComplete: handleComplete,
+    onFail: handleComplete,
+    octaveAgnostic: true, // Voice mode: any octave of the correct note counts
+  });
 
   const currentMeasureIndex = useMemo(
     () => getMeasureIndexForNote(song, currentNoteIndex),
@@ -126,10 +135,17 @@ export function VoiceTraining({ songId }: { songId: string }) {
   const showDebug =
     new URLSearchParams(window.location.search).get("debug") === "true";
 
-  const progressValue = Math.min(
-    (currentNoteIndex / Math.max(totalNotes, 1)) * 100,
+  // Calculate progress values for the split progress bar
+  const notesPlayed = correctCount + errorCount;
+  const overallProgress = Math.min(
+    (notesPlayed / Math.max(totalNotes, 1)) * 100,
     100,
   );
+  // Within the played portion, calculate the correct vs error split
+  const correctPercentOfPlayed =
+    notesPlayed > 0 ? (correctCount / notesPlayed) * 100 : 100;
+  const correctWidth = (overallProgress * correctPercentOfPlayed) / 100;
+  const errorWidth = overallProgress - correctWidth;
 
   const startMeasure = currentPage * MEASURES_PER_PAGE;
 
@@ -147,6 +163,47 @@ export function VoiceTraining({ songId }: { songId: string }) {
           style={{ background: "rgba(14,22,30,0.9)" }}
         >
           <h1 className="level-up-text">SONG COMPLETE</h1>
+          <div
+            style={{
+              marginTop: "20px",
+              textAlign: "center",
+              fontFamily: "Bangers, cursive",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "3rem",
+                color: "#f2ff5d",
+                textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
+              }}
+            >
+              SCORE: {score}
+            </div>
+            <div
+              style={{
+                fontSize: "1.5rem",
+                color: "#fff",
+                marginTop: "10px",
+              }}
+            >
+              <span style={{ color: "#4caf50" }}>{correctCount} correct</span>
+              {" • "}
+              <span style={{ color: "#f44336" }}>{errorCount} missed</span>
+            </div>
+            <div
+              style={{
+                fontSize: "1.2rem",
+                color: "#aaa",
+                marginTop: "10px",
+              }}
+            >
+              Accuracy:{" "}
+              {totalNotes > 0
+                ? Math.round((correctCount / totalNotes) * 100)
+                : 0}
+              %
+            </div>
+          </div>
         </div>
       )}
 
@@ -204,23 +261,52 @@ export function VoiceTraining({ songId }: { songId: string }) {
           <div className="hud-right">
             <div className="hud-progress">
               <div className="progress-track">
+                {/* Green section for correct notes */}
                 <div
                   className="progress-fill"
-                  style={{ width: `${progressValue}%` }}
+                  style={{
+                    width: `${correctWidth}%`,
+                    background: "#4caf50",
+                    position: "absolute",
+                    left: 0,
+                    height: "100%",
+                    borderRadius: correctWidth > 0 ? "8px 0 0 8px" : "0",
+                  }}
+                />
+                {/* Red section for errors */}
+                <div
+                  style={{
+                    width: `${errorWidth}%`,
+                    background: "#f44336",
+                    position: "absolute",
+                    left: `${correctWidth}%`,
+                    height: "100%",
+                    borderRadius:
+                      errorWidth > 0 && correctWidth + errorWidth >= 99
+                        ? "0 8px 8px 0"
+                        : "0",
+                  }}
+                />
+                <span
+                  className="progress-text"
+                  style={{
+                    position: "relative",
+                    zIndex: 1,
+                    color: "#fff",
+                    textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
+                  }}
                 >
-                  <span className="progress-text">
-                    {Math.round(progressValue)}%
-                  </span>
-                </div>
+                  {notesPlayed}/{totalNotes}
+                </span>
               </div>
             </div>
             <div className="hud-score-stacked">
               <img
                 src={streetScoreImage}
-                alt="Song"
+                alt="Score"
                 className="score-label-img"
               />
-              <span className="score-value">Page {currentPage + 1}</span>
+              <span className="score-value">{score}</span>
             </div>
           </div>
         </header>
