@@ -116,6 +116,25 @@ const MusicStaff = ({
     );
   };
 
+  const getFullMeasureBeats = (
+    beatsPerMeasure: number,
+    beatValueNum: number,
+  ) => {
+    // Normalise to quarter-note beats to match getDurationBeats
+    const beatValueRatio = 4 / (beatValueNum || 4);
+    return beatsPerMeasure * beatValueRatio;
+  };
+
+  const shouldApplyPickupScaling = (
+    measureBeats: number,
+    fullMeasureBeats: number,
+    measureIndex: number,
+    hasPickupMeasure?: boolean,
+  ) => {
+    const allowsPickup = hasPickupMeasure ?? measureIndex === 0;
+    return allowsPickup && measureBeats + 0.001 < fullMeasureBeats;
+  };
+
   const renderStaff = (
     container: HTMLDivElement,
     exercise: Exercise,
@@ -143,6 +162,7 @@ const MusicStaff = ({
     const [beats, beatValue] = (exercise.timeSignature ?? "4/4").split("/");
     const numBeats = Number.parseInt(beats) || 4;
     const beatValueNum = Number.parseInt(beatValue) || 4;
+    const fullMeasureBeats = getFullMeasureBeats(numBeats, beatValueNum);
     const measureWidth = availableWidth / Math.max(1, measuresToRender.length);
 
     const renderer = new Renderer(container, Renderer.Backends.SVG);
@@ -301,16 +321,31 @@ const MusicStaff = ({
         if (allNotes.length) {
           const unifiedVoice = buildVoice(allNotes);
 
-          // Calculate proportional format width for pickup/partial measures
-          // This ensures notes in pickup measures have the same spacing as full measures
+          // Calculate proportional format width only when the measure is truly a pickup
           const measureBeats = getMeasureBeats(measure);
-          const fullMeasureBeats = numBeats;
-          const beatRatio = Math.min(measureBeats / fullMeasureBeats, 1);
-          const formatWidth = (measureWidth - 20) * beatRatio;
+          const isPickup = shouldApplyPickupScaling(
+            measureBeats,
+            fullMeasureBeats,
+            start + index,
+            exercise.hasPickupMeasure,
+          );
+          const beatRatio = isPickup
+            ? Math.max(
+                measureBeats / (fullMeasureBeats || measureBeats || 1),
+                0,
+              )
+            : 1;
+          const baseFormatWidth = (measureWidth - 20) * beatRatio;
 
-          new Formatter()
-            .joinVoices([unifiedVoice])
-            .format([unifiedVoice], formatWidth);
+          const formatter = new Formatter();
+          formatter.joinVoices([unifiedVoice]);
+
+          // Ensure we always give VexFlow enough room to avoid spilling notes
+          // into the next measure while still supporting smaller pickup bars.
+          const minWidth = formatter.preCalculateMinTotalWidth([unifiedVoice]);
+          const safeFormatWidth = Math.max(baseFormatWidth, minWidth);
+
+          formatter.format([unifiedVoice], safeFormatWidth);
 
           // Draw each note individually - it will render on its assigned stave
           allNotes.forEach((note) => {
@@ -346,13 +381,26 @@ const MusicStaff = ({
 
         const beams = Beam.generateBeams(notes);
 
-        // Calculate proportional format width for pickup/partial measures
+        // Calculate proportional format width only when the measure is truly a pickup
         const measureBeats = getMeasureBeats(measure);
-        const fullMeasureBeats = numBeats;
-        const beatRatio = Math.min(measureBeats / fullMeasureBeats, 1);
-        const formatWidth = (measureWidth - 20) * beatRatio;
+        const isPickup = shouldApplyPickupScaling(
+          measureBeats,
+          fullMeasureBeats,
+          start + index,
+          exercise.hasPickupMeasure,
+        );
+        const beatRatio = isPickup
+          ? Math.max(measureBeats / (fullMeasureBeats || measureBeats || 1), 0)
+          : 1;
+        const baseFormatWidth = (measureWidth - 20) * beatRatio;
 
-        new Formatter().joinVoices([voice]).format([voice], formatWidth);
+        const formatter = new Formatter();
+        formatter.joinVoices([voice]);
+
+        const minWidth = formatter.preCalculateMinTotalWidth([voice]);
+        const safeFormatWidth = Math.max(baseFormatWidth, minWidth);
+
+        formatter.format([voice], safeFormatWidth);
 
         voice.draw(context, stave);
         beams.forEach((beam) => beam.setContext(context).draw());

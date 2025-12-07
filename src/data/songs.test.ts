@@ -33,6 +33,7 @@ describe("happyBirthdaySong", () => {
   it("encodes the correct layout and time signature", () => {
     expect(happyBirthdaySong.layout).toBe("grand");
     expect(happyBirthdaySong.timeSignature).toBe("3/4");
+    expect(happyBirthdaySong.hasPickupMeasure).toBe(true);
   });
 
   it("contains the expected measures and pickup", () => {

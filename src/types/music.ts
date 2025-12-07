@@ -17,4 +17,5 @@ export interface Exercise {
   measures: Measure[];
   timeSignature?: string;
   layout?: "single" | "grand";
+  hasPickupMeasure?: boolean;
 }
