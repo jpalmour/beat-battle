@@ -171,4 +171,13 @@ describe("Game", () => {
 
     expect(screen.getByAltText("Stop Recording")).toBeInTheDocument();
   });
+
+  it("initializes exercise engine with octave agnostic enabled", () => {
+    render(<Game />);
+    expect(vi.mocked(useExerciseEngine)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        octaveAgnostic: true,
+      })
+    );
+  });
 });
