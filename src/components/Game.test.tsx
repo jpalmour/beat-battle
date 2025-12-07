@@ -105,6 +105,16 @@ describe("Game", () => {
     vi.useRealTimers();
   });
 
+  it("enables octave-agnostic detection by default", () => {
+    render(<Game />);
+
+    expect(useExerciseEngine).toHaveBeenCalledWith(
+      expect.objectContaining({
+        octaveAgnostic: true,
+      }),
+    );
+  });
+
   it("updates score and progress when exercises complete", async () => {
     render(<Game />);
 
