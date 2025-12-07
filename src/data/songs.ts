@@ -22,6 +22,7 @@ export const happyBirthdaySong: Exercise = {
   title: "Happy Birthday",
   clef: "treble",
   layout: "grand",
+  hasPickupMeasure: true,
   timeSignature: "3/4",
   measures: [
     [e("g/3"), e("g/3")],

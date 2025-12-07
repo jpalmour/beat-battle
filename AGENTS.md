@@ -45,7 +45,7 @@ Layout validation is **fully automated** via Playwright E2E tests (`tests/layout
 ### Unit Tests
 - **Framework**: Vitest
 - **Execution**: Runs on pre-commit hook (`.husky/pre-commit`).
-- **Command**: `npm run test`
+- **Command**: `npm run test` (run as-is; no `--runInBand` or other flags needed)
 
 ### End-to-End (E2E) Tests
 - **Framework**: Playwright
