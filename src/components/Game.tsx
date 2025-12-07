@@ -166,6 +166,7 @@ export function Game() {
     isRecording,
     onComplete: handleExerciseComplete,
     onFail: handleExerciseFail,
+    octaveAgnostic: true,
   });
 
   // Check for debug mode
