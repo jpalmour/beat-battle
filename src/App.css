@@ -2,6 +2,7 @@
 
 .app-shell {
     min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height - accounts for mobile browser chrome */
     width: 100%;
     background: url('./assets/background.jpeg') center/cover fixed;
     position: relative;
@@ -96,6 +97,7 @@
     gap: 12px;
     z-index: 1;
     height: 100vh;
+    height: 100dvh; /* Dynamic viewport height - accounts for mobile browser chrome */
     justify-content: center;
     box-sizing: border-box;
 }
